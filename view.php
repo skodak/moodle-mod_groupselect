@@ -38,12 +38,14 @@
         $viewothers = has_capability('moodle/course:viewparticipants', $context);
     }
 
-    $strgroup   = get_string('group');
+    $strgroup        = get_string('group');
+    $strgroupdesc    = get_string('groupdescription', 'group');
     $strgroupselect  = get_string('modulename', 'groupselect');
-    $strmembers = get_string('memberslist', 'groupselect');
-    $strsignup  = get_string('signup', 'groupselect');
-    $straction  = get_string('action', 'groupselect');
-    $strcount   = get_string('membercount', 'groupselect');
+    $strmembers      = get_string('memberslist', 'groupselect');
+    $strsignup       = get_string('signup', 'groupselect');
+    $straction       = get_string('action', 'groupselect');
+    $strcount        = get_string('membercount', 'groupselect');
+
     $navigation = build_navigation('', $cm);
     
     if (has_capability('moodle/legacy:guest', $context, NULL, false)) {
@@ -125,11 +127,12 @@
                 $grpname = '<div class="mygroup">'.$grpname.'</div>';
             }
             $line[0] = $grpname;
+            $line[1] = format_text($group->description);
 
             if ($groupselect->maxmembers) {
-                $line[1] = $usercount.'/'.$groupselect->maxmembers;
+                $line[2] = $usercount.'/'.$groupselect->maxmembers;
             } else {
-                $line[1] = $usercount;
+                $line[2] = $usercount;
             }
 
             if ($accessall) {
@@ -152,32 +155,32 @@
                             $membernames[] = fullname($member);
                         }
                     }
-                    $line[2] = implode(', ', $membernames);
+                    $line[3] = implode(', ', $membernames);
                 } else {
-                    $line[2] = '-';
+                    $line[3] = '-';
                 }
             } else {
-                $line[2] = '<div class="membershidden">'.get_string('membershidden', 'groupselect').'</div>';
+                $line[3] = '<div class="membershidden">'.get_string('membershidden', 'groupselect').'</div>';
             }
             if ($isopen and !$hasgroup and !$accessall) {
                 if ($groupselect->maxmembers and $groupselect->maxmembers <= $usercount) {
-                    $line[3] = ''; // full - no more members
+                    $line[4] = ''; // full - no more members
                 } else {
-                    $line[3] = "<a title=\"$strsignup\" href=\"view.php?id=$cm->id&amp;signup=$group->id\">$strsignup</a> ";;
+                    $line[4] = "<a title=\"$strsignup\" href=\"view.php?id=$cm->id&amp;signup=$group->id\">$strsignup</a> ";;
                 }
             }
             $data[] = $line;
         }
 
         $table = new object();
-        $table->head  = array($strgroup, $strcount, $strmembers);
-        $table->size  = array('20%', '5%', '75%');
+        $table->head  = array($strgroup, $strgroupdesc, $strcount, $strmembers);
+        $table->size  = array('10%', '30%', '5%', '55%');
         $table->align = array('left', 'center', 'left');
         $table->width = '90%';
         $table->data  = $data;
         if ($isopen and !$hasgroup and !$accessall) {
             $table->head[]  = $straction;
-            $table->size    = array('20%', '5%', '65%', '10%');
+            $table->size    = array('10%', '30%', '5%', '45%', '10%');
             $table->align[] = 'center';
         }
         print_table($table);
