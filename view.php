@@ -22,7 +22,7 @@
     require_login($course, $cm);
     $context = get_context_instance(CONTEXT_MODULE, $cm->id);
 
-    $groups         = groups_get_all_groups($course->id, 0, $cm->groupingid);
+    $groups         = groups_get_all_groups($course->id, 0, $groupselect->targetgrouping);
     $accessall      = has_capability('moodle/site:accessallgroups', $context);
     $viewfullnames  = has_capability('moodle/site:viewfullnames', $context);
     $manage         = has_capability('moodle/course:managegroups', $context);

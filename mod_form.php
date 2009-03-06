@@ -4,6 +4,7 @@ require_once ($CFG->dirroot.'/course/moodleform_mod.php');
 class mod_groupselect_mod_form extends moodleform_mod {
 
     function definition() {
+        global $COURSE;
 
         $mform    =& $this->_form;
 
@@ -15,6 +16,15 @@ class mod_groupselect_mod_form extends moodleform_mod {
         $mform->setType('intro', PARAM_RAW);
         $mform->addRule('intro', get_string('required'), 'required', null, 'client');
         $mform->setHelpButton('intro', array('questions', 'richtext'), false, 'editorhelpbutton');
+
+        $options = array();
+        $options[0] = get_string('fromallgroups', 'groupselect');
+        if ($groupings = groups_get_all_groupings($COURSE->id)) {
+            foreach ($groupings as $grouping) {
+                $options[$grouping->id] = format_string($grouping->name);
+            }
+        }
+        $mform->addElement('select', 'targetgrouping', get_string('targetgrouping', 'groupselect'), $options);
 
         $mform->addElement('passwordunmask', 'password', get_string('password', 'groupselect'), 'maxlength="254" size="24"');
         $mform->setType('password', PARAM_RAW);
@@ -28,7 +38,7 @@ class mod_groupselect_mod_form extends moodleform_mod {
         $mform->addElement('date_time_selector', 'timedue', get_string('timedue', 'groupselect'), array('optional'=>true));
         $mform->setDefault('timedue', 0);
 
-        $features = array('groups'=>true, 'groupings'=>true, 'groupmembersonly'=>false,
+        $features = array('groups'=>true, 'groupings'=>true, 'groupmembersonly'=>true,
                           'outcomes'=>false, 'gradecat'=>false, 'idnumber'=>false);
     
         $this->standard_coursemodule_elements($features);
