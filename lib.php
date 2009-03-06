@@ -22,9 +22,6 @@ function groupselect_is_open($groupselect) {
 /**
  * Get the number of members in all groups the user can select from in this activity
  *
- * TODO: according to Petr's original code, groupselect does not support groupings
- * Therefore the "else" statement of the following "if" does not make sense here ... 
- * 
  * @param $cm Course module slot of the groupselect instance
  * @return array of objects: [id] => object(->usercount ->id) where id is group id
  */
