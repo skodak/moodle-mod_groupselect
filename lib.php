@@ -1,5 +1,11 @@
 <?php  // $Id$
 
+/**
+ * Is the given group selection open for students to select their group at the moment? 
+ * 
+ * @param object $groupselect Groupselect record
+ * @return bool True if the group selection is open right now, false otherwise
+ */
 function groupselect_is_open($groupselect) {
     $now = time();
     return ($groupselect->timeavailable < $now AND ($groupselect->timedue == 0 or $groupselect->timedue > $now));
@@ -28,13 +34,17 @@ function groupselect_group_member_counts($cm) {
     return get_records_sql($sql);
 }
 
-/// Library of functions and constants for module groupselect
 
+/**
+ * Given an object containing all the necessary data, (defined by the form in mod.html) 
+ * this function will create a new instance and return the id number of the new instance.
+ *
+ * @param object $groupselect Object containing all the necessary data defined by the form in mod_form.php
+ * $return int The id of the newly created instance
+ */
 function groupselect_add_instance($groupselect) {
-/// Given an object containing all the necessary data, 
-/// (defined by the form in mod.html) this function 
-/// will create a new instance and return the id number 
-/// of the new instance.
+    $groupselect->timecreated = time();
+    $groupselect->timemodified = time();
 
     return insert_record('groupselect', $groupselect);
 }
