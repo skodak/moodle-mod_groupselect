@@ -22,15 +22,16 @@
     require_login($course, $cm);
     $context = get_context_instance(CONTEXT_MODULE, $cm->id);
 
-    $groups    = groups_get_all_groups($course->id, 0, $cm->groupingid);
-    $accessall = has_capability('moodle/site:accessallgroups', $context);
-    $manage    = has_capability('moodle/course:managegroups', $context);
-    $hasgroup  = groups_has_membership($cm, $USER->id); 
-    $isopen    = groupselect_is_open($groupselect);
-    $groupmode = groups_get_activity_groupmode($cm, $course);
-    $counts    = groupselect_group_member_counts($cm); 
-    $mygroups  = groups_get_user_groups($course->id, $USER->id);
-    $mygroups  = isset($mygroups[$cm->groupingid]) ? $mygroups[$cm->groupingid] : array();
+    $groups         = groups_get_all_groups($course->id, 0, $cm->groupingid);
+    $accessall      = has_capability('moodle/site:accessallgroups', $context);
+    $viewfullnames  = has_capability('moodle/site:viewfullnames', $context);
+    $manage         = has_capability('moodle/course:managegroups', $context);
+    $hasgroup       = groups_has_membership($cm, $USER->id); 
+    $isopen         = groupselect_is_open($groupselect);
+    $groupmode      = groups_get_activity_groupmode($cm, $course);
+    $counts         = groupselect_group_member_counts($cm); 
+    $mygroups       = groups_get_user_groups($course->id, $USER->id);
+    $mygroups       = isset($mygroups[$cm->groupingid]) ? $mygroups[$cm->groupingid] : array();
 
     if ($course->id == SITEID) {
         $viewothers = has_capability('moodle/site:viewparticipants', $sitecontext);
@@ -150,9 +151,9 @@
                     $membernames = array();
                     foreach ($members as $member) {
                         if ($member->id == $USER->id) {
-                            $membernames[] = '<span class="me">'.fullname($member, true).'</span>';
+                            $membernames[] = '<span class="me">'.fullname($member, $viewfullnames).'</span>';
                         } else {
-                            $membernames[] = fullname($member);
+                            $membernames[] = '<a href="'.$CFG->wwwroot.'/user/view.php?id='.$member->id.'&amp;course='.$course->id.'">' . fullname($member, $viewfullnames) . '</a>';
                         }
                     }
                     $line[3] = implode(', ', $membernames);
