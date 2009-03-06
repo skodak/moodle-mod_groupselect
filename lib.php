@@ -1,6 +1,13 @@
 <?php  // $Id$
 
 /**
+ * Library of functions and constants of Group selection module
+ *
+ * @package mod/groupselect
+ */
+
+
+/**
  * Is the given group selection open for students to select their group at the moment? 
  * 
  * @param object $groupselect Groupselect record
@@ -11,6 +18,16 @@ function groupselect_is_open($groupselect) {
     return ($groupselect->timeavailable < $now AND ($groupselect->timedue == 0 or $groupselect->timedue > $now));
 }
 
+
+/**
+ * Get the number of members in all groups the user can select from in this activity
+ *
+ * TODO: according to Petr's original code, groupselect does not support groupings
+ * Therefore the "else" statement of the following "if" does not make sense here ... 
+ * 
+ * @param $cm Course module slot of the groupselect instance
+ * @return array of objects: [id] => object(->usercount ->id) where id is group id
+ */
 function groupselect_group_member_counts($cm) {
     global $CFG;
 
@@ -50,10 +67,13 @@ function groupselect_add_instance($groupselect) {
 }
 
 
+/**
+ * Update an existing instance with new data.
+ *
+ * @param object $groupselect An object containing all the necessary data defined by the mod_form.php 
+ * @return bool
+ */
 function groupselect_update_instance($groupselect) {
-/// Given an object containing all the necessary data, 
-/// (defined by the form in mod.html) this function 
-/// will update an existing instance with new data.
     $groupselect->timemodified = time();
     $groupselect->id = $groupselect->instance;
 
@@ -61,11 +81,14 @@ function groupselect_update_instance($groupselect) {
 }
 
 
+/**
+ * Permanently delete the instance of the module and any data that depends on it.  
+ *
+ * @param int $id Instance id
+ * @return bool
+ */
 function groupselect_delete_instance($id) {
-/// Given an ID of an instance of this module, 
-/// this function will permanently delete the instance 
-/// and any data that depends on it.  
-
+ 
     if (! $groupselect = get_record('groupselect', 'id', $id)) {
         return false;
     }
@@ -79,23 +102,43 @@ function groupselect_delete_instance($id) {
     return $result;
 }
 
-function groupselect_get_participants($groupselectid) {
-//Returns the users with data in one resource
-//(NONE, but must exist on EVERY mod !!)
 
+/**
+ * Returns the users with data in this module
+ *
+ * We have no data/users here but this must exists in every module
+ * 
+ * @param int $groupselectid 
+ * @return bool
+ */
+function groupselect_get_participants($groupselectid) {
     return false;
 }
 
+
+/**
+ * groupselect_get_view_actions 
+ * 
+ * @return array
+ */
 function groupselect_get_view_actions() {
     return array();
 }
 
+
+/**
+ * groupselect_get_post_actions 
+ * 
+ * @return array
+ */
 function groupselect_get_post_actions() {
     return array();
 }
 
+
 /**
  * This function is used by the reset_course_userdata function in moodlelib.
+ *
  * @param $data the data submitted from the reset course.
  * @return array status array
  */
