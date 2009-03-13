@@ -23,12 +23,13 @@ function groupselect_is_open($groupselect) {
  * Get the number of members in all groups the user can select from in this activity
  *
  * @param $cm Course module slot of the groupselect instance
+ * @param $targetgrouping The id of grouping the user can select a group from
  * @return array of objects: [id] => object(->usercount ->id) where id is group id
  */
-function groupselect_group_member_counts($cm) {
+function groupselect_group_member_counts($cm, $targetgrouping=0) {
     global $CFG;
 
-    if (empty($CFG->enablegroupings) or empty($cm->groupingid)) {
+    if (empty($CFG->enablegroupings) or empty($cm->groupingid) or empty($targetgrouping)) {
         //all groups
         $sql = "SELECT g.id, COUNT(gm.userid) AS usercount
                   FROM {$CFG->prefix}groups_members gm
@@ -42,7 +43,7 @@ function groupselect_group_member_counts($cm) {
                        JOIN {$CFG->prefix}groups g            ON g.id = gm.groupid
                        JOIN {$CFG->prefix}groupings_groups gg ON gg.groupid = g.id
                  WHERE g.courseid = $cm->course
-                       AND gg.groupingid = $cm->groupingid
+                       AND gg.groupingid = $targetgrouping
               GROUP BY g.id";  
     }
     return get_records_sql($sql);

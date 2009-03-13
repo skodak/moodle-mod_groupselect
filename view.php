@@ -26,12 +26,13 @@
     $accessall      = has_capability('moodle/site:accessallgroups', $context);
     $viewfullnames  = has_capability('moodle/site:viewfullnames', $context);
     $manage         = has_capability('moodle/course:managegroups', $context);
-    $hasgroup       = groups_has_membership($cm, $USER->id); 
+    $havinggroups   = groups_get_all_groups($course->id, $USER->id, $groupselect->targetgrouping, 'g.id');
+    $hasgroup       = !empty($havinggroups);
     $isopen         = groupselect_is_open($groupselect);
     $groupmode      = groups_get_activity_groupmode($cm, $course);
-    $counts         = groupselect_group_member_counts($cm); 
+    $counts         = groupselect_group_member_counts($cm, $groupselect->targetgrouping); 
     $mygroups       = groups_get_user_groups($course->id, $USER->id);
-    $mygroups       = isset($mygroups[$cm->groupingid]) ? $mygroups[$cm->groupingid] : array();
+    $mygroups       = isset($mygroups[$groupselect->targetgrouping]) ? $mygroups[$groupselect->targetgrouping] : array();
 
     if ($course->id == SITEID) {
         $viewothers = has_capability('moodle/site:viewparticipants', $sitecontext);
