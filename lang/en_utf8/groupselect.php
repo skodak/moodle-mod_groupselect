@@ -18,11 +18,12 @@ $string['nogroups'] = 'No groups available to select from, sorry.';
 $string['noguestselect'] = 'Sorry, guests are not allowed to select groups.';
 $string['notavailableanymore'] = 'Group selection is not available anymore, sorry (since $a).';
 $string['notavailableyet'] = 'Group selection will be available on $a.';
-$string['password'] = 'Signup password';
-$string['signupconfirm'] = 'Do you really want to signup as member of group <em>$a</em>?';
-$string['signup'] = 'Signup';
+$string['password'] = 'Enrol password';
+$string['signupconfirm'] = 'Do you really want to enrol as member of the group <em>$a</em>?';
+$string['signoutconfirm'] = 'Do you really want to unenrol from the group <em>$a</em>?';
+$string['signout'] = 'Unenrol';
+$string['signup'] = 'Enrol';
 $string['targetgrouping'] = 'Allow selection from';
 $string['timeavailable'] = 'Open from';
 $string['timedue'] = 'Open until';
-
 ?>
