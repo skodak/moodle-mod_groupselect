@@ -11,3 +11,7 @@
 #mod-groupselect-view .membershidden {
   color:#AAAAAA;
 }
+
+#mod-groupselect-view .notavailable {
+  color:#AAAAAA;
+}

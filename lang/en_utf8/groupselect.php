@@ -16,6 +16,7 @@ $string['modulename'] = 'Group selection';
 $string['modulenameplural'] = 'Group selections';
 $string['nogroups'] = 'No groups available to select from, sorry.';
 $string['noguestselect'] = 'Sorry, guests are not allowed to select groups.';
+$string['notavailable'] = 'Not available';
 $string['notavailableanymore'] = 'Group selection is not available anymore, sorry (since $a).';
 $string['notavailableyet'] = 'Group selection will be available on $a.';
 $string['password'] = 'Enrol password';

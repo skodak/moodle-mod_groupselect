@@ -31,8 +31,8 @@
     $isopen         = groupselect_is_open($groupselect);
     $groupmode      = groups_get_activity_groupmode($cm, $course);
     $counts         = groupselect_group_member_counts($cm, $groupselect->targetgrouping); 
-    $mygroups       = groups_get_user_groups($course->id, $USER->id);
-    $mygroups       = isset($mygroups[$groupselect->targetgrouping]) ? $mygroups[$groupselect->targetgrouping] : array();
+//    $mygroups       = groups_get_user_groups($course->id, $USER->id);
+//    $mygroups       = isset($mygroups[$groupselect->targetgrouping]) ? $mygroups[$groupselect->targetgrouping] : array();
 
     if ($course->id == SITEID) {
         $viewothers = has_capability('moodle/site:viewparticipants', $sitecontext);
@@ -94,7 +94,7 @@
 
     if ($signout and $hasgroup) {
 
-require_once('signout_form.php');
+        require_once('signout_form.php');
 
         $mform = new signout_form(null, $groupselect);
 
@@ -151,7 +151,7 @@ require_once('signout_form.php');
         $data = array();
 
         foreach ($groups as $group) {
-            $ismember  = isset($mygroups[$group->id]);
+            $ismember  = isset($havinggroups[$group->id]);
             $usercount = isset($counts[$group->id]) ? $counts[$group->id]->usercount : 0;
             $grpname   = format_string($group->name);
 
@@ -193,11 +193,11 @@ require_once('signout_form.php');
                     $line[3] = '-';
                 }
             } else {
-                $line[3] = '<div class="membershidden">'.get_string('membershidden', 'groupselect').'</div>';
+                $line[3] = '<div class="membershidden">'.format_text(get_string('membershidden', 'groupselect')).'</div>';
             }
             if ($isopen and !$accessall) { //!$hasgroup and
                 if ($groupselect->maxmembers and $groupselect->maxmembers <= $usercount and !$ismember) {
-                    $line[4] = ''; // full - no more members
+                    $line[4] = '<div class="notavailable">'.get_string('notavailable', 'groupselect').'</div>'; // full - no more members
                 } else if ($ismember) 
                 {
                     $line[4] = format_text("<a title=\"$strsignout\" href=\"view.php?id=$cm->id&amp;signout=$group->id\">$strsignout</a>");
@@ -212,10 +212,10 @@ require_once('signout_form.php');
         $table = new object();
         $table->head  = array($strgroup, $strgroupdesc, $strcount, $strmembers);
         $table->size  = array('10%', '30%', '5%', '55%');
-        $table->align = array('left', 'center', 'left');
+        $table->align = array('left', 'center', 'left', 'left');
         $table->width = '90%';
         $table->data  = $data;
-        if ($isopen and !$hasgroup and !$accessall or $ismember) {
+        if ($isopen and !$accessall) {
             $table->head[]  = $straction;
             $table->size    = array('10%', '30%', '5%', '45%', '10%');
             $table->align[] = 'center';
