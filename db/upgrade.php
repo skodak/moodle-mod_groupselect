@@ -23,14 +23,29 @@ function xmldb_groupselect_upgrade($oldversion=0) {
 
     $result = true;
 
-/// And upgrade begins here. For each one, you'll need one 
-/// block of code similar to the next one. Please, delete 
-/// this comment lines once this file start handling proper
-/// upgrade code.
+    if ($result && $oldversion < 2009020600) {
 
-/// if ($result && $oldversion < YYYYMMDD00) { //New version in version.php
-///     $result = result of "/lib/ddllib.php" function calls
-/// }
+    /// Define field signuptype to be added to groupselect
+        $table = new XMLDBTable('groupselect');
+        $field = new XMLDBField('signuptype');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, null, null, null, null, '0', 'intro');
+        $result = $result && add_field($table, $field);
+
+    /// Define field timecreated to be added to groupselect
+        $table = new XMLDBTable('groupselect');
+        $field = new XMLDBField('timecreated');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'timedue');
+        $result = $result && add_field($table, $field);
+    }
+
+    if ($result && $oldversion < 2009030500) {
+
+    /// Define field targetgrouping to be added to groupselect
+        $table = new XMLDBTable('groupselect');
+        $field = new XMLDBField('targetgrouping');
+        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'intro');
+        $result = $result && add_field($table, $field);
+    }
 
     return $result;
 }

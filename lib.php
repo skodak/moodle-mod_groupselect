@@ -1,14 +1,35 @@
 <?php  // $Id$
 
+/**
+ * Library of functions and constants of Group selection module
+ *
+ * @package mod/groupselect
+ */
+
+
+/**
+ * Is the given group selection open for students to select their group at the moment? 
+ * 
+ * @param object $groupselect Groupselect record
+ * @return bool True if the group selection is open right now, false otherwise
+ */
 function groupselect_is_open($groupselect) {
     $now = time();
     return ($groupselect->timeavailable < $now AND ($groupselect->timedue == 0 or $groupselect->timedue > $now));
 }
 
-function groupselect_group_member_counts($cm) {
+
+/**
+ * Get the number of members in all groups the user can select from in this activity
+ *
+ * @param $cm Course module slot of the groupselect instance
+ * @param $targetgrouping The id of grouping the user can select a group from
+ * @return array of objects: [id] => object(->usercount ->id) where id is group id
+ */
+function groupselect_group_member_counts($cm, $targetgrouping=0) {
     global $CFG;
 
-    if (empty($CFG->enablegroupings) or empty($cm->groupingid)) {
+    if (empty($CFG->enablegroupings) or empty($cm->groupingid) or empty($targetgrouping)) {
         //all groups
         $sql = "SELECT g.id, COUNT(gm.userid) AS usercount
                   FROM {$CFG->prefix}groups_members gm
@@ -22,28 +43,35 @@ function groupselect_group_member_counts($cm) {
                        JOIN {$CFG->prefix}groups g            ON g.id = gm.groupid
                        JOIN {$CFG->prefix}groupings_groups gg ON gg.groupid = g.id
                  WHERE g.courseid = $cm->course
-                       AND gg.groupingid = $cm->groupingid
+                       AND gg.groupingid = $targetgrouping
               GROUP BY g.id";  
     }
     return get_records_sql($sql);
 }
 
-/// Library of functions and constants for module groupselect
 
+/**
+ * Given an object containing all the necessary data, (defined by the form in mod.html) 
+ * this function will create a new instance and return the id number of the new instance.
+ *
+ * @param object $groupselect Object containing all the necessary data defined by the form in mod_form.php
+ * $return int The id of the newly created instance
+ */
 function groupselect_add_instance($groupselect) {
-/// Given an object containing all the necessary data, 
-/// (defined by the form in mod.html) this function 
-/// will create a new instance and return the id number 
-/// of the new instance.
+    $groupselect->timecreated = time();
+    $groupselect->timemodified = time();
 
     return insert_record('groupselect', $groupselect);
 }
 
 
+/**
+ * Update an existing instance with new data.
+ *
+ * @param object $groupselect An object containing all the necessary data defined by the mod_form.php 
+ * @return bool
+ */
 function groupselect_update_instance($groupselect) {
-/// Given an object containing all the necessary data, 
-/// (defined by the form in mod.html) this function 
-/// will update an existing instance with new data.
     $groupselect->timemodified = time();
     $groupselect->id = $groupselect->instance;
 
@@ -51,11 +79,14 @@ function groupselect_update_instance($groupselect) {
 }
 
 
+/**
+ * Permanently delete the instance of the module and any data that depends on it.  
+ *
+ * @param int $id Instance id
+ * @return bool
+ */
 function groupselect_delete_instance($id) {
-/// Given an ID of an instance of this module, 
-/// this function will permanently delete the instance 
-/// and any data that depends on it.  
-
+ 
     if (! $groupselect = get_record('groupselect', 'id', $id)) {
         return false;
     }
@@ -69,23 +100,43 @@ function groupselect_delete_instance($id) {
     return $result;
 }
 
-function groupselect_get_participants($groupselectid) {
-//Returns the users with data in one resource
-//(NONE, but must exist on EVERY mod !!)
 
+/**
+ * Returns the users with data in this module
+ *
+ * We have no data/users here but this must exists in every module
+ * 
+ * @param int $groupselectid 
+ * @return bool
+ */
+function groupselect_get_participants($groupselectid) {
     return false;
 }
 
+
+/**
+ * groupselect_get_view_actions 
+ * 
+ * @return array
+ */
 function groupselect_get_view_actions() {
     return array();
 }
 
+
+/**
+ * groupselect_get_post_actions 
+ * 
+ * @return array
+ */
 function groupselect_get_post_actions() {
     return array();
 }
 
+
 /**
  * This function is used by the reset_course_userdata function in moodlelib.
+ *
  * @param $data the data submitted from the reset course.
  * @return array status array
  */

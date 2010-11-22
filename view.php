@@ -5,6 +5,7 @@
 
     $id      = required_param('id', PARAM_INT);    // Course Module ID, or
     $signup  = optional_param('signup', 0, PARAM_INT);
+    $signout  = optional_param('signout', 0, PARAM_INT);
     $confirm = optional_param('confirm', 0, PARAM_BOOL);
 
     if (!$cm = get_coursemodule_from_id('groupselect', $id)) {
@@ -14,7 +15,6 @@
     if (!$course = get_record('course', 'id', $cm->course)) {
         error("Course is misconfigured");
     }
-
     if (!$groupselect = get_record('groupselect', 'id', $cm->instance)) {
         error("Course module is incorrect");
     }
@@ -22,15 +22,17 @@
     require_login($course, $cm);
     $context = get_context_instance(CONTEXT_MODULE, $cm->id);
 
-    $groups    = groups_get_all_groups($course->id, 0, $cm->groupingid);
-    $accessall = has_capability('moodle/site:accessallgroups', $context);
-    $manage    = has_capability('moodle/course:managegroups', $context);
-    $hasgroup  = groups_has_membership($cm, $USER->id); 
-    $isopen    = groupselect_is_open($groupselect);
-    $groupmode = groups_get_activity_groupmode($cm, $course);
-    $counts    = groupselect_group_member_counts($cm); 
-    $mygroups  = groups_get_user_groups($course->id, $USER->id);
-    $mygroups  = isset($mygroups[$cm->groupingid]) ? $mygroups[$cm->groupingid] : array();
+    $groups         = groups_get_all_groups($course->id, 0, $groupselect->targetgrouping);
+    $accessall      = has_capability('moodle/site:accessallgroups', $context);
+    $viewfullnames  = has_capability('moodle/site:viewfullnames', $context);
+    $manage         = has_capability('moodle/course:managegroups', $context);
+    $havinggroups   = groups_get_all_groups($course->id, $USER->id, $groupselect->targetgrouping, 'g.id');
+    $hasgroup       = !empty($havinggroups);
+    $isopen         = groupselect_is_open($groupselect);
+    $groupmode      = groups_get_activity_groupmode($cm, $course);
+    $counts         = groupselect_group_member_counts($cm, $groupselect->targetgrouping); 
+//    $mygroups       = groups_get_user_groups($course->id, $USER->id);
+//    $mygroups       = isset($mygroups[$groupselect->targetgrouping]) ? $mygroups[$groupselect->targetgrouping] : array();
 
     if ($course->id == SITEID) {
         $viewothers = has_capability('moodle/site:viewparticipants', $sitecontext);
@@ -43,6 +45,7 @@
     $strgroupselect  = get_string('modulename', 'groupselect');
     $strmembers      = get_string('memberslist', 'groupselect');
     $strsignup       = get_string('signup', 'groupselect');
+    $strsignout      = get_string('signout', 'groupselect');
     $straction       = get_string('action', 'groupselect');
     $strcount        = get_string('membercount', 'groupselect');
 
@@ -89,6 +92,36 @@
         }
     }
 
+    if ($signout and $hasgroup) {
+
+        require_once('signout_form.php');
+
+        $mform = new signout_form(null, $groupselect);
+
+        $data = array('id'=>$id, 'signout'=>$signout);
+
+        $mform->set_data($data);
+
+        if ($mform->is_cancelled()) {
+            //nothing
+
+        } else if ($mform->get_data(false)) {
+            require_once("$CFG->dirroot/group/lib.php");
+            if (!isset($groups[$signout])) {
+                error("Incorrect group id!");
+            }
+            groups_remove_member($signout, $USER->id);
+            redirect("$CFG->wwwroot/mod/groupselect/view.php?id=$cm->id");
+            
+        } else {
+            print_header_simple(format_string($groupselect->name), '', $navigation, '', '', true, '', navmenu($course, $cm));
+            print_box(get_string('signoutconfirm', 'groupselect', format_string($groups[$signout]->name)));
+            $mform->display();
+            print_footer();
+            die;
+        }
+    }
+
     print_header_simple(format_string($groupselect->name), '', $navigation, '', '', true,
         update_module_button($cm->id, $course->id, $strgroupselect), navmenu($course, $cm));
 
@@ -118,7 +151,7 @@
         $data = array();
 
         foreach ($groups as $group) {
-            $ismember  = isset($mygroups[$group->id]);
+            $ismember  = isset($havinggroups[$group->id]);
             $usercount = isset($counts[$group->id]) ? $counts[$group->id]->usercount : 0;
             $grpname   = format_string($group->name);
 
@@ -126,13 +159,13 @@
             if ($ismember) {
                 $grpname = '<div class="mygroup">'.$grpname.'</div>';
             }
-            $line[0] = $grpname;
+            $line[0] = format_text($grpname);
             $line[1] = format_text($group->description);
 
             if ($groupselect->maxmembers) {
-                $line[2] = $usercount.'/'.$groupselect->maxmembers;
+                $line[2] = format_text($usercount.'/'.$groupselect->maxmembers);
             } else {
-                $line[2] = $usercount;
+                $line[2] = format_text($usercount);
             }
 
             if ($accessall) {
@@ -150,23 +183,27 @@
                     $membernames = array();
                     foreach ($members as $member) {
                         if ($member->id == $USER->id) {
-                            $membernames[] = '<span class="me">'.fullname($member, true).'</span>';
+                            $membernames[] = '<span class="me">'.fullname($member, $viewfullnames).'</span>';
                         } else {
-                            $membernames[] = fullname($member);
+                            $membernames[] = '<a href="'.$CFG->wwwroot.'/user/view.php?id='.$member->id.'&amp;course='.$course->id.'">' . fullname($member, $viewfullnames) . '</a>';
                         }
                     }
-                    $line[3] = implode(', ', $membernames);
+                    $line[3] = format_text(implode(', ', $membernames));
                 } else {
                     $line[3] = '-';
                 }
             } else {
-                $line[3] = '<div class="membershidden">'.get_string('membershidden', 'groupselect').'</div>';
+                $line[3] = '<div class="membershidden">'.format_text(get_string('membershidden', 'groupselect')).'</div>';
             }
-            if ($isopen and !$hasgroup and !$accessall) {
-                if ($groupselect->maxmembers and $groupselect->maxmembers <= $usercount) {
-                    $line[4] = ''; // full - no more members
-                } else {
-                    $line[4] = "<a title=\"$strsignup\" href=\"view.php?id=$cm->id&amp;signup=$group->id\">$strsignup</a> ";;
+            if ($isopen and !$accessall) { //!$hasgroup and
+                if ($groupselect->maxmembers and $groupselect->maxmembers <= $usercount and !$ismember) {
+                    $line[4] = '<div class="notavailable">'.get_string('notavailable', 'groupselect').'</div>'; // full - no more members
+                } else if ($ismember) 
+                {
+                    $line[4] = format_text("<a title=\"$strsignout\" href=\"view.php?id=$cm->id&amp;signout=$group->id\">$strsignout</a>");
+                } else if (!$ismember and !$hasgroup)
+                {
+                    $line[4] = format_text("<a title=\"$strsignup\" href=\"view.php?id=$cm->id&amp;signup=$group->id\">$strsignup</a> ");
                 }
             }
             $data[] = $line;
@@ -175,10 +212,10 @@
         $table = new object();
         $table->head  = array($strgroup, $strgroupdesc, $strcount, $strmembers);
         $table->size  = array('10%', '30%', '5%', '55%');
-        $table->align = array('left', 'center', 'left');
+        $table->align = array('left', 'center', 'left', 'left');
         $table->width = '90%';
         $table->data  = $data;
-        if ($isopen and !$hasgroup and !$accessall) {
+        if ($isopen and !$accessall) {
             $table->head[]  = $straction;
             $table->size    = array('10%', '30%', '5%', '45%', '10%');
             $table->align[] = 'center';
@@ -192,3 +229,4 @@
 
     print_footer($course);
 ?>
+
