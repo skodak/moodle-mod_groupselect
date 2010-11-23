@@ -1,4 +1,4 @@
-<?php // $Id$
+<?php
 
 /////////////////////////////////////////////////////////////////////////////////
 ///  Code fragment to define the version of groupselect
@@ -8,5 +8,3 @@
 $module->version  = 2009030500;  // The current module version (Date: YYYYMMDDXX)
 $module->requires = 2007101509;  // Requires this Moodle version
 $module->cron     = 0;           // Period for cron to check this module (secs)
-
-?>
