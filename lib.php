@@ -42,8 +42,6 @@ function groupselect_group_member_counts($cm, $targetgrouping=0) {
                   FROM {$CFG->prefix}groups_members gm
                        JOIN {$CFG->prefix}groups g            ON g.id = gm.groupid
                        JOIN {$CFG->prefix}groupings_groups gg ON gg.groupid = g.id
-                 WHERE g.courseid = $cm->course
-                       AND gg.groupingid = $targetgrouping
               GROUP BY g.id";  
     }
     return get_records_sql($sql);
@@ -93,9 +91,6 @@ function groupselect_delete_instance($id) {
 
     $result = true;
 
-    if (! delete_records('groupselect', 'id', $groupselect->id)) {
-        $result = false;
-    }
 
     return $result;
 }
@@ -141,7 +136,6 @@ function groupselect_get_post_actions() {
  * @return array status array
  */
 function groupselect_reset_userdata($data) {
-    return array();
 }
 
 ?>
