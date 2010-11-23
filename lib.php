@@ -1,4 +1,4 @@
-<?php  // $Id$
+<?php
 
 /**
  * Library of functions and constants of Group selection module
