@@ -1,10 +1,26 @@
 <?php
+    // This file is part of Moodle - http://moodle.org/
+    //
+    // Moodle is free software: you can redistribute it and/or modify
+    // it under the terms of the GNU General Public License as published by
+    // the Free Software Foundation, either version 3 of the License, or
+    // (at your option) any later version.
+    //
+    // Moodle is distributed in the hope that it will be useful,
+    // but WITHOUT ANY WARRANTY; without even the implied warranty of
+    // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    // GNU General Public License for more details.
+    //
+    // You should have received a copy of the GNU General Public License
+    // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
     //This php script contains all the stuff to backup/restore
+
     //groupselect mods
 
-    //This is the "graphical" structure of the groupselect mod:   
+    //This is the "graphical" structure of the groupselect mod:
     //
-    //                       groupselect 
+    //                       groupselect
     //                    (CL,pk->id)
     //
     // Meaning: pk->primary key field of the table
@@ -32,7 +48,7 @@
             //traverse_xmlize($info);                                                                     //Debug
             //print_object ($GLOBALS['traverse_array']);                                                  //Debug
             //$GLOBALS['traverse_array']="";                                                              //Debug
-          
+
             //Now, build the LABEL record structure
             $groupselect = new object();
             $groupselect->course        = $restore->course_id;
@@ -42,11 +58,11 @@
             $groupselect->timeavailable = backup_todb($info['MOD']['#']['TIMEAVAILABLE']['0']['#']);
             $groupselect->timedue       = backup_todb($info['MOD']['#']['TIMEDUE']['0']['#']);
             $groupselect->timemodified  = backup_todb($info['MOD']['#']['TIMEMODIFIED']['0']['#']);
- 
+
             //The structure is equal to the db, so insert the groupselect
             $newid = insert_record ("groupselect",$groupselect);
 
-            //Do some output     
+            //Do some output
             if (!defined('RESTORE_SILENTLY')) {
                 echo "<li>".get_string("modulename","groupselect")." \"".format_string(stripslashes($groupselect->name),true)."\"</li>";
             }
@@ -56,7 +72,7 @@
                 //We have the newid, update backup_ids
                 backup_putid($restore->backup_unique_code,$mod->modtype,
                              $mod->id, $newid);
-   
+
             } else {
                 $status = false;
             }
@@ -109,9 +125,9 @@
     //This function returns a log record with all the necessay transformations
     //done. It's used by restore_log_module() to restore modules log.
     function groupselect_restore_logs($restore,$log) {
-                    
+
         $status = false;
-                    
+
         //Depending of the action, we recode different things
         switch ($log->action) {
         case "add":
@@ -148,4 +164,3 @@
         }
         return $status;
     }
-?>
