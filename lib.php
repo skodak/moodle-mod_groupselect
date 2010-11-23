@@ -143,5 +143,3 @@ function groupselect_get_post_actions() {
 function groupselect_reset_userdata($data) {
     return array();
 }
-
-?>
