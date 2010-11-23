@@ -14,13 +14,13 @@ require_course_login($course);
 add_to_log($course->id, 'groupselect', 'view all', "index.php?id=$course->id", '');
 
 
-/// Get all required strings
+// Get all required strings
 
 $strgroupselects = get_string('modulenameplural', 'groupselect');
 $strgroupselect  = get_string('modulename', 'groupselect');
 
 
-/// Print the header
+// Print the header
 
 $navlinks = array();
 $navlinks[] = array('name' => $strgroupselects, 'link' => '', 'type' => 'activity');
@@ -28,14 +28,14 @@ $navigation = build_navigation($navlinks);
 
 print_header_simple($strgroupselects, '', $navigation, '', '', true, '', navmenu($course));
 
-/// Get all the appropriate data
+// Get all the appropriate data
 
 if (! $groupselects = get_all_instances_in_course('groupselect', $course)) {
     notice(get_string('thereareno', 'moodle', $strgroupselects), "../../course/view.php?id=$course->id");
     die();
 }
 
-/// Print the list of instances (your module will probably extend this)
+// Print the list of instances (your module will probably extend this)
 
 $timenow  = time();
 $strname  = get_string('name');
@@ -83,6 +83,6 @@ echo '<br />';
 
 print_table($table);
 
-/// Finish the page
+// Finish the page
 
 print_footer($course);
