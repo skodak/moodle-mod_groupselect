@@ -64,4 +64,3 @@ class mod_groupselect_mod_form extends moodleform_mod {
         return $errors;
     }
 }
-?>
