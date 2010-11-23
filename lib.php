@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Library of functions and constants of Group selection module
+ * Library of functions and constants for Group selection module
  *
  * @package mod/groupselect
  */
