@@ -74,7 +74,6 @@ if ($signup and !$hasgroup) {
 
     if ($mform->is_cancelled()) {
         //nothing
-
     } else if ($mform->get_data(false)) {
         require_once("$CFG->dirroot/group/lib.php");
         if (!isset($groups[$signup])) {
@@ -82,7 +81,6 @@ if ($signup and !$hasgroup) {
         }
         groups_add_member($signup, $USER->id);
         redirect("$CFG->wwwroot/mod/groupselect/view.php?id=$cm->id");
-
     } else {
         print_header_simple(format_string($groupselect->name), '', $navigation, '', '', true, '', navmenu($course, $cm));
         print_box(get_string('signupconfirm', 'groupselect', format_string($groups[$signup]->name)));
@@ -93,18 +91,13 @@ if ($signup and !$hasgroup) {
 }
 
 if ($signout and $hasgroup) {
-
     require_once('signout_form.php');
-
     $mform = new signout_form(null, $groupselect);
-
     $data = array('id'=>$id, 'signout'=>$signout);
-
     $mform->set_data($data);
 
     if ($mform->is_cancelled()) {
         //nothing
-
     } else if ($mform->get_data(false)) {
         require_once("$CFG->dirroot/group/lib.php");
         if (!isset($groups[$signout])) {
@@ -112,7 +105,6 @@ if ($signout and $hasgroup) {
         }
         groups_remove_member($signout, $USER->id);
         redirect("$CFG->wwwroot/mod/groupselect/view.php?id=$cm->id");
-
     } else {
         print_header_simple(format_string($groupselect->name), '', $navigation, '', '', true, '', navmenu($course, $cm));
         print_box(get_string('signoutconfirm', 'groupselect', format_string($groups[$signout]->name)));
@@ -198,11 +190,9 @@ if ($groups) {
         if ($isopen and !$accessall) { //!$hasgroup and
             if ($groupselect->maxmembers and $groupselect->maxmembers <= $usercount and !$ismember) {
                 $line[4] = '<div class="notavailable">'.get_string('notavailable', 'groupselect').'</div>'; // full - no more members
-            } else if ($ismember) 
-            {
+            } else if ($ismember) {
                 $line[4] = format_text("<a title=\"$strsignout\" href=\"view.php?id=$cm->id&amp;signout=$group->id\">$strsignout</a>");
-            } else if (!$ismember and !$hasgroup)
-            {
+            } else if (!$ismember and !$hasgroup) {
                 $line[4] = format_text("<a title=\"$strsignup\" href=\"view.php?id=$cm->id&amp;signup=$group->id\">$strsignup</a> ");
             }
         }
