@@ -19,32 +19,48 @@
 
 function xmldb_groupselect_upgrade($oldversion=0) {
 
-    global $CFG, $THEME, $db;
+    global $CFG, $THEME, $DB;
 
     $result = true;
+    $dbman = $DB->get_manager();
 
     if ($result && $oldversion < 2009020600) {
+        $table = new xmldb_table('groupselect');
 
-    // Define field signuptype to be added to groupselect
-        $table = new XMLDBTable('groupselect');
-        $field = new XMLDBField('signuptype');
-        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, null, null, null, null, '0', 'intro');
-        $result = $result && add_field($table, $field);
+        // Define field signuptype to be added to groupselect
+        $field_signuptype_new = new xmldb_field('signuptype',XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, null, null, null, null, '0', 'intro');
+        
+        // Conditionally launch adding fields
+        if (!$dbman->field_exists($table, $field_signuptype_new)) {
+            $dbman->add_field($table, $field_signuptype_new);
+        }
 
-    // Define field timecreated to be added to groupselect
-        $table = new XMLDBTable('groupselect');
-        $field = new XMLDBField('timecreated');
-        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'timedue');
-        $result = $result && add_field($table, $field);
+        // Define field timecreated to be added to groupselect
+        $field_timecreated_new = new xmldb_field('timecreated',XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'timedue');
+        
+        // Conditionally launch add temporary fields
+        if (!$dbman->field_exists($table, $field_timecreated_new)) {
+            $dbman->add_field($table, $field_timecreated_new);
+        }
+        
+        // search savepoint reached
+        upgrade_mod_savepoint(true, 2009020600, 'groupselect');        
+        
     }
 
     if ($result && $oldversion < 2009030500) {
 
-    // Define field targetgrouping to be added to groupselect
-        $table = new XMLDBTable('groupselect');
-        $field = new XMLDBField('targetgrouping');
-        $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'intro');
-        $result = $result && add_field($table, $field);
+        // Define field targetgrouping to be added to groupselect
+        $table = new xmldb_table('groupselect');
+        $field_targetgrouping_new = new xmldb_field('targetgrouping',XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'intro');
+        // Conditionally launch adding fields
+        if (!$dbman->field_exists($table, $field_targetgrouping_new)) {
+            $dbman->add_field($table, $field_targetgrouping_new);
+        }
+        
+        // search savepoint reached
+        upgrade_mod_savepoint(true, 2009030500, 'groupselect');                
+        
     }
 
     return $result;
