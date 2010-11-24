@@ -1,4 +1,4 @@
-<?php  //$Id$
+<?php
 
 // This file keeps track of upgrades to 
 // the groupselect module
@@ -25,13 +25,13 @@ function xmldb_groupselect_upgrade($oldversion=0) {
 
     if ($result && $oldversion < 2009020600) {
 
-    /// Define field signuptype to be added to groupselect
+    // Define field signuptype to be added to groupselect
         $table = new XMLDBTable('groupselect');
         $field = new XMLDBField('signuptype');
         $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, null, null, null, null, '0', 'intro');
         $result = $result && add_field($table, $field);
 
-    /// Define field timecreated to be added to groupselect
+    // Define field timecreated to be added to groupselect
         $table = new XMLDBTable('groupselect');
         $field = new XMLDBField('timecreated');
         $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'timedue');
@@ -40,7 +40,7 @@ function xmldb_groupselect_upgrade($oldversion=0) {
 
     if ($result && $oldversion < 2009030500) {
 
-    /// Define field targetgrouping to be added to groupselect
+    // Define field targetgrouping to be added to groupselect
         $table = new XMLDBTable('groupselect');
         $field = new XMLDBField('targetgrouping');
         $field->setAttributes(XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'intro');
@@ -49,5 +49,3 @@ function xmldb_groupselect_upgrade($oldversion=0) {
 
     return $result;
 }
-
-?>
