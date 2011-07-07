@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Group self selection
+ * Group self selection module admin settings and defaults
  *
  * @package    mod
  * @subpackage groupselect
@@ -25,6 +25,16 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-$module->version  = 2010010101;  // note: keep low to prevent Netspot breakage for now
-$module->requires = 2011033000;  // Requires this Moodle version
-$module->cron     = 0;
+if ($ADMIN->fulltree) {
+
+    //--- general settings -----------------------------------------------------------------------------------
+    $settings->add(new admin_setting_configcheckbox('groupselect/requiremodintro',
+        get_string('requiremodintro', 'admin'), get_string('configrequiremodintro', 'admin'), 1));
+
+    //--- modedit defaults -----------------------------------------------------------------------------------
+    $settings->add(new admin_setting_heading('groupselectmodeditdefaults', get_string('modeditdefaults', 'admin'), get_string('condifmodeditdefaults', 'admin')));
+
+    $settings->add(new admin_setting_configtext_with_advanced('groupselect/maxmembers',
+        get_string('maxmembers', 'mod_groupselect'), '',
+        array('value'=>0, 'adv'=>false), PARAM_INT, 4));
+}

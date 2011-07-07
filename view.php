@@ -1,163 +1,181 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * Main group self selection interface
+ *
+ * @package    mod
+ * @subpackage groupselect
+ * @copyright  2008 Petr Skoda (http://skodak.org)
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 require('../../config.php');
-require_once('lib.php');
+require_once('locallib.php');
+require_once('signup_form.php');
 
-$id      = required_param('id', PARAM_INT);    // Course Module ID, or
+$id      = optional_param('id', 0, PARAM_INT);       // Course Module ID, or
+$g       = optional_param('g', 0, PARAM_INT);        // Page instance ID
 $signup  = optional_param('signup', 0, PARAM_INT);
-$signout  = optional_param('signout', 0, PARAM_INT);
+$signout = optional_param('signout', 0, PARAM_INT);
 $confirm = optional_param('confirm', 0, PARAM_BOOL);
 
-if (!$cm = get_coursemodule_from_id('groupselect', $id)) {
-    error("Course Module ID was incorrect");
+if ($g) {
+    $groupselect = $DB->get_record('groupselect', array('id'=>$g), '*', MUST_EXIST);
+    $cm = get_coursemodule_from_instance('groupselect', $groupselect->id, $groupselect->course, false, MUST_EXIST);
+
+} else {
+    $cm = get_coursemodule_from_id('groupselect', $id, 0, false, MUST_EXIST);
+    $groupselect = $DB->get_record('groupselect', array('id'=>$cm->instance), '*', MUST_EXIST);
 }
 
-if (!$course = get_record('course', 'id', $cm->course)) {
-    error("Course is misconfigured");
-}
-if (!$groupselect = get_record('groupselect', 'id', $cm->instance)) {
-    error("Course module is incorrect");
-}
+$course = $DB->get_record('course', array('id'=>$cm->course), '*', MUST_EXIST);
 
-require_login($course, $cm);
+require_login($course, true, $cm);
 $context = get_context_instance(CONTEXT_MODULE, $cm->id);
 
+add_to_log($course->id, 'groupselect', 'view', 'view.php?id='.$cm->id, $groupselect->id, $cm->id);
+
+$PAGE->set_url('/mod/groupselect/view.php', array('id' => $cm->id));
+$PAGE->set_title($course->shortname.': '.$groupselect->name);
+$PAGE->set_heading($course->fullname);
+$PAGE->set_activity_record($groupselect);
+
+$mygroups       = groups_get_all_groups($course->id, $USER->id, $groupselect->targetgrouping, 'g.id');
+$isopen         = groupselect_is_open($groupselect);
+$groupmode      = groups_get_activity_groupmode($cm, $course);
+$counts         = groupselect_group_member_counts($cm, $groupselect->targetgrouping);
 $groups         = groups_get_all_groups($course->id, 0, $groupselect->targetgrouping);
 $accessall      = has_capability('moodle/site:accessallgroups', $context);
 $viewfullnames  = has_capability('moodle/site:viewfullnames', $context);
-$manage         = has_capability('moodle/course:managegroups', $context);
-$havinggroups   = groups_get_all_groups($course->id, $USER->id, $groupselect->targetgrouping, 'g.id');
-$hasgroup       = !empty($havinggroups);
-$isopen         = groupselect_is_open($groupselect);
-$groupmode      = groups_get_activity_groupmode($cm, $course);
-$counts         = groupselect_group_member_counts($cm, $groupselect->targetgrouping); 
-//    $mygroups       = groups_get_user_groups($course->id, $USER->id);
-//    $mygroups       = isset($mygroups[$groupselect->targetgrouping]) ? $mygroups[$groupselect->targetgrouping] : array();
+$canselect      = (has_capability('mod/groupselect:select', $context) and is_enrolled($context) and empty($mygroups));
+$canunselect    = (has_capability('mod/groupselect:unselect', $context) and is_enrolled($context) and !empty($mygroups));
 
 if ($course->id == SITEID) {
-    $viewothers = has_capability('moodle/site:viewparticipants', $sitecontext);
+    $viewothers = has_capability('moodle/site:viewparticipants', $context);
 } else {
     $viewothers = has_capability('moodle/course:viewparticipants', $context);
 }
 
-$strgroup        = get_string('group');
-$strgroupdesc    = get_string('groupdescription', 'group');
-$strgroupselect  = get_string('modulename', 'groupselect');
-$strmembers      = get_string('memberslist', 'groupselect');
-$strsignup       = get_string('signup', 'groupselect');
-$strsignout      = get_string('signout', 'groupselect');
-$straction       = get_string('action', 'groupselect');
-$strcount        = get_string('membercount', 'groupselect');
+$strgroup       = get_string('group');
+$strgroupdesc   = get_string('groupdescription', 'group');
+$strmembers     = get_string('memberslist', 'mod_groupselect');
+$strsignup      = get_string('signup', 'mod_groupselect');
+$strsignout     = get_string('signout', 'mod_groupselect');
+$straction      = get_string('action', 'mod_groupselect');
+$strcount       = get_string('membercount', 'mod_groupselect');
 
-$navigation = build_navigation('', $cm);
+if ($accessall) {
+    // can see group members - depending on overrides guests could get through too
 
-if (has_capability('moodle/legacy:guest', $context, NULL, false)) {
-    print_header_simple(format_string($groupselect->name), '', $navigation, '', '', true, '', navmenu($course, $cm));
+} else if (isguestuser()) {
+    echo $OUTPUT->header();
+    echo $OUTPUT->notification(get_string('noguestselect', 'mod_groupselect'));
+    echo $OUTPUT->continue_button(new moodle_url('/course/view.php', array('id'=>$course->id)));
+    echo $OUTPUT->footer($course);
+    exit;
 
-    $wwwroot = $CFG->wwwroot.'/login/index.php';
-    if (!empty($CFG->loginhttps)) {
-        $wwwroot = str_replace('http:', 'https:', $wwwroot);
-    }
-
-    notice_yesno(get_string('noguestselect', 'groupselect').'<br /><br />'.get_string('liketologin'),
-                 $wwwroot, "$CFG->wwwroot/course/view.php?id=$course->id");
-    print_footer($course);
+} else if (!is_enrolled($context)) {
+    echo $OUTPUT->header();
+    echo $OUTPUT->notification(get_string('noenrolselect', 'mod_groupselect'));
+    echo $OUTPUT->continue_button(new moodle_url('/course/view.php', array('id'=>$course->id)));
+    echo $OUTPUT->footer($course);
     exit;
 }
 
-if ($signup and !$hasgroup) {
-    require_once('signup_form.php');
-
-    $mform = new signup_form(null, $groupselect);
+if ($signup and $canselect and isset($groups[$signup]) and $isopen) {
+    // user selected group
     $data = array('id'=>$id, 'signup'=>$signup);
-    $mform->set_data($data);
+    $mform = new signup_form(null, array($data, $groupselect));
 
     if ($mform->is_cancelled()) {
-        //nothing
-    } else if ($mform->get_data(false)) {
-        require_once("$CFG->dirroot/group/lib.php");
-        if (!isset($groups[$signup])) {
-            error("Incorrect group id!");
-        }
+        redirect($PAGE->url);
+
+    } else if ($mform->get_data()) {
         groups_add_member($signup, $USER->id);
-        redirect("$CFG->wwwroot/mod/groupselect/view.php?id=$cm->id");
+        add_to_log($course->id, 'groupselect', 'select', 'view.php?id='.$cm->id, $groupselect->id, $cm->id);
+        redirect($PAGE->url);
+
     } else {
-        print_header_simple(format_string($groupselect->name), '', $navigation, '', '', true, '', navmenu($course, $cm));
-        print_box(get_string('signupconfirm', 'groupselect', format_string($groups[$signup]->name)));
+        echo $OUTPUT->header();
+        echo $OUTPUT->heading(get_string('signup', 'mod_groupselect'));
+        echo $OUTPUT->box(get_string('signupconfirm', 'mod_groupselect', format_string($groups[$signup]->name, true, array('context'=>$context))));
         $mform->display();
-        print_footer();
+        echo $OUTPUT->footer();
         die;
     }
-}
 
-if ($signout and $hasgroup) {
-    require_once('signout_form.php');
-    $mform = new signout_form(null, $groupselect);
-    $data = array('id'=>$id, 'signout'=>$signout);
-    $mform->set_data($data);
+} else if ($signout and $canunselect and isset($mygroups[$signout]) and $isopen) {
+    // user unselected group
 
-    if ($mform->is_cancelled()) {
-        //nothing
-    } else if ($mform->get_data(false)) {
-        require_once("$CFG->dirroot/group/lib.php");
-        if (!isset($groups[$signout])) {
-            error("Incorrect group id!");
-        }
+    if ($confirm and data_submitted() and confirm_sesskey()) {
         groups_remove_member($signout, $USER->id);
-        redirect("$CFG->wwwroot/mod/groupselect/view.php?id=$cm->id");
+        add_to_log($course->id, 'groupselect', 'unselect', 'view.php?id='.$cm->id, $groupselect->id, $cm->id);
+        redirect($PAGE->url);
+
     } else {
-        print_header_simple(format_string($groupselect->name), '', $navigation, '', '', true, '', navmenu($course, $cm));
-        print_box(get_string('signoutconfirm', 'groupselect', format_string($groups[$signout]->name)));
-        $mform->display();
-        print_footer();
+        echo $OUTPUT->header();
+        echo $OUTPUT->heading(get_string('signout', 'mod_groupselect'));
+        $yesurl = new moodle_url('/mod/groupselect/view.php', array('id'=>$cm->id, 'signout'=>$signout, 'confirm'=>1,'sesskey'=>sesskey()));
+        $message = get_string('signoutconfirm', 'mod_groupselect', format_string($groups[$signout]->name, true, array('context'=>$context)));
+        echo $OUTPUT->confirm($message, $yesurl, $PAGE->url);
+        echo $OUTPUT->footer();
         die;
     }
 }
 
-print_header_simple(format_string($groupselect->name), '', $navigation, '', '', true,
-    update_module_button($cm->id, $course->id, $strgroupselect), navmenu($course, $cm));
+echo $OUTPUT->header();
+echo $OUTPUT->heading(format_string($groupselect->name, true, array('context'=>$context)));
 
-if ($manage) {
-    echo '<div class="managelink"><a href="'."$CFG->wwwroot/group/index.php?id=$course->id".'">'.get_string('managegroups', 'groupselect').'</a></div>';
+if (trim(strip_tags($groupselect->intro))) {
+    echo $OUTPUT->box_start('mod_introbox', 'groupselectintro');
+    echo format_module_intro('page', $groupselect, $cm->id);
+    echo $OUTPUT->box_end();
 }
 
-if (empty($CFG->enablegroupings) or empty($cm->groupingid)) {
-    print_heading(get_string('headingsimple', 'groupselect'));
-} else {
-    $grouping = groups_get_grouping($cm->groupingid);        
-    print_heading(get_string('headinggrouping', 'groupselect', format_string($grouping->name)));
-}
+if ($canselect and $groupselect->timeavailable > time()) {
+    echo $OUTPUT->notification(get_string('notavailableyet', 'mod_groupselect', userdate($groupselect->timeavailable)), "$CFG->wwwroot/course/view.php?id=$course->id");
 
-if (!$accessall and $groupselect->timeavailable > time()) {
-    notice(get_string('notavailableyet', 'groupselect', userdate($groupselect->timeavailable)), "$CFG->wwwroot/course/view.php?id=$course->id");
-    die; // not reached
-}
+} else if ($canselect and $groupselect->timedue != 0 and  $groupselect->timedue < time() and empty($mygroups)) {
+    echo $OUTPUT->notification(get_string('notavailableanymore', 'mod_groupselect', userdate($groupselect->timedue)));
 
-print_box(format_text($groupselect->intro), 'intro generalbox boxwidthnormal boxaligncenter');
-
-if (!$accessall and $groupselect->timedue != 0 and  $groupselect->timedue < time() and !$hasgroup) {
-    notify(get_string('notavailableanymore', 'groupselect', userdate($groupselect->timedue)));
+} else if (!is_enrolled($context)) {
+    // TODO: explain no select possible if not enrolled
 }
 
 if ($groups) {
     $data = array();
+    $actionpresent = false;
 
     foreach ($groups as $group) {
-        $ismember  = isset($havinggroups[$group->id]);
+        $ismember  = isset($mygroups[$group->id]);
         $usercount = isset($counts[$group->id]) ? $counts[$group->id]->usercount : 0;
-        $grpname   = format_string($group->name);
+        $grpname   = format_string($group->name, true, array('context'=>$context));
 
         $line = array();
         if ($ismember) {
             $grpname = '<div class="mygroup">'.$grpname.'</div>';
         }
-        $line[0] = format_text($grpname);
-        $line[1] = format_text($group->description);
+        $line[0] = $grpname;
+        $line[1] = groupselect_get_group_info($group);
 
         if ($groupselect->maxmembers) {
-            $line[2] = format_text($usercount.'/'.$groupselect->maxmembers);
+            $line[2] = $usercount.'/'.$groupselect->maxmembers;
         } else {
-            $line[2] = format_text($usercount);
+            $line[2] = $usercount;
         }
 
         if ($accessall) {
@@ -174,49 +192,52 @@ if ($groups) {
             if ($members = groups_get_members($group->id)) {
                 $membernames = array();
                 foreach ($members as $member) {
+                    $pic = $OUTPUT->user_picture($member, array('courseid'=>$course->id));
                     if ($member->id == $USER->id) {
-                        $membernames[] = '<span class="me">'.fullname($member, $viewfullnames).'</span>';
+                        $membernames[] = '<span class="me">'.$pic.'&nbsp;'.fullname($member, $viewfullnames).'</span>';
                     } else {
-                        $membernames[] = '<a href="'.$CFG->wwwroot.'/user/view.php?id='.$member->id.'&amp;course='.$course->id.'">' . fullname($member, $viewfullnames) . '</a>';
+                        $membernames[] = $pic.'&nbsp;<a href="'.$CFG->wwwroot.'/user/view.php?id='.$member->id.'&amp;course='.$course->id.'">'.fullname($member, $viewfullnames).'</a>';
                     }
                 }
-                $line[3] = format_text(implode(', ', $membernames));
+                $line[3] = implode(', ', $membernames);
             } else {
-                $line[3] = '-';
+                $line[3] = '';
             }
         } else {
-            $line[3] = '<div class="membershidden">'.format_text(get_string('membershidden', 'groupselect')).'</div>';
+            $line[3] = '<div class="membershidden">'.get_string('membershidden', 'mod_groupselect').'</div>';
         }
-        if ($isopen and !$accessall) { //!$hasgroup and
-            if ($groupselect->maxmembers and $groupselect->maxmembers <= $usercount and !$ismember) {
-                $line[4] = '<div class="notavailable">'.get_string('notavailable', 'groupselect').'</div>'; // full - no more members
-            } else if ($ismember) {
-                $line[4] = format_text("<a title=\"$strsignout\" href=\"view.php?id=$cm->id&amp;signout=$group->id\">$strsignout</a>");
-            } else if (!$ismember and !$hasgroup) {
-                $line[4] = format_text("<a title=\"$strsignup\" href=\"view.php?id=$cm->id&amp;signup=$group->id\">$strsignup</a> ");
+        if ($isopen and !$accessall) {
+            if (!$ismember and $groupselect->maxmembers and $groupselect->maxmembers <= $usercount) {
+                $line[4] = '<div class="maxlimitreached">'.get_string('maxlimitreached', 'mod_groupselect').'</div>'; // full - no more members
+                $actionpresent = true;
+            } else if ($ismember and $canunselect) {
+                $line[4] = "<a title=\"$strsignout\" href=\"view.php?id=$cm->id&amp;signout=$group->id\">$strsignout</a>";
+                $actionpresent = true;
+            } else if (!$ismember and $canselect) {
+                $line[4] = "<a title=\"$strsignup\" href=\"view.php?id=$cm->id&amp;signup=$group->id\">$strsignup</a> ";
+                $actionpresent = true;
             }
         }
         $data[] = $line;
     }
 
-    $table = new object();
+    $table = new html_table();
     $table->head  = array($strgroup, $strgroupdesc, $strcount, $strmembers);
     $table->size  = array('10%', '30%', '5%', '55%');
     $table->align = array('left', 'center', 'left', 'left');
-    $table->width = '90%';
     $table->data  = $data;
-    if ($isopen and !$accessall) {
+    if ($actionpresent) {
         $table->head[]  = $straction;
         $table->size    = array('10%', '30%', '5%', '45%', '10%');
         $table->align[] = 'center';
     }
-    print_table($table);
+    echo html_writer::table($table);
 
 } else {
-    notify(get_string('nogroups', 'groupselect'));
+    echo $OUTPUT->notification(get_string('nogroups', 'mod_groupselect'));
 }
 
 
-print_footer($course);
+echo $OUTPUT->footer();
 
 

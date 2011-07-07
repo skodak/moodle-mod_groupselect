@@ -1,103 +1,104 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
  * Library of functions and constants of Group selection module
  *
- * @package mod/groupselect
+ * @package    mod
+ * @subpackage groupselect
+ * @copyright  2008 Petr Skoda (http://skodak.org)
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+defined('MOODLE_INTERNAL') || die;
 
 /**
- * Is the given group selection open for students to select their group at the moment? 
- * 
- * @param object $groupselect Groupselect record
- * @return bool True if the group selection is open right now, false otherwise
+ * List of features supported in groupselect module
+ * @param string $feature FEATURE_xx constant for requested feature
+ * @return mixed True if module supports feature, false if not, null if doesn't know
  */
-function groupselect_is_open($groupselect) {
-    $now = time();
-    return ($groupselect->timeavailable < $now AND ($groupselect->timedue == 0 or $groupselect->timedue > $now));
-}
+function groupselect_supports($feature) {
+    switch($feature) {
+        case FEATURE_MOD_ARCHETYPE:           return MOD_ARCHETYPE_OTHER;
+        case FEATURE_GROUPS:                  return true;  // only separate mode makes sense - you hide members of other groups here
+        case FEATURE_GROUPINGS:               return false;
+        case FEATURE_GROUPMEMBERSONLY:        return false;  // this could be very confusing
+        case FEATURE_MOD_INTRO:               return true;
+        case FEATURE_COMPLETION_TRACKS_VIEWS: return false;
+        case FEATURE_GRADE_HAS_GRADE:         return false;
+        case FEATURE_GRADE_OUTCOMES:          return false;
+        case FEATURE_BACKUP_MOODLE2:          return false; //TODO
 
-
-/**
- * Get the number of members in all groups the user can select from in this activity
- *
- * @param $cm Course module slot of the groupselect instance
- * @param $targetgrouping The id of grouping the user can select a group from
- * @return array of objects: [id] => object(->usercount ->id) where id is group id
- */
-function groupselect_group_member_counts($cm, $targetgrouping=0) {
-    global $CFG;
-
-    if (empty($CFG->enablegroupings) or empty($cm->groupingid) or empty($targetgrouping)) {
-        //all groups
-        $sql = "SELECT g.id, COUNT(gm.userid) AS usercount
-                  FROM {$CFG->prefix}groups_members gm
-                       JOIN {$CFG->prefix}groups g ON g.id = gm.groupid
-                 WHERE g.courseid = $cm->course
-              GROUP BY g.id";  
-
-    } else {
-        $sql = "SELECT g.id, COUNT(gm.userid) AS usercount
-                  FROM {$CFG->prefix}groups_members gm
-                       JOIN {$CFG->prefix}groups g            ON g.id = gm.groupid
-                       JOIN {$CFG->prefix}groupings_groups gg ON gg.groupid = g.id
-                 WHERE g.courseid = $cm->course
-                       AND gg.groupingid = $targetgrouping
-              GROUP BY g.id";  
+        default: return null;
     }
-    return get_records_sql($sql);
 }
 
+/**
+ * Returns all other caps used in module
+ * @return array
+ */
+function groupselect_get_extra_capabilities() {
+    return array('moodle/site:accessallgroups', 'moodle/site:viewfullnames');
+}
 
 /**
- * Given an object containing all the necessary data, (defined by the form in mod.html) 
+ * Given an object containing all the necessary data, (defined by the form in mod.html)
  * this function will create a new instance and return the id number of the new instance.
  *
  * @param object $groupselect Object containing all the necessary data defined by the form in mod_form.php
  * $return int The id of the newly created instance
  */
 function groupselect_add_instance($groupselect) {
+    global $DB;
+
     $groupselect->timecreated = time();
     $groupselect->timemodified = time();
 
-    return insert_record('groupselect', $groupselect);
+    return $DB->insert_record('groupselect', $groupselect);
 }
 
 
 /**
  * Update an existing instance with new data.
  *
- * @param object $groupselect An object containing all the necessary data defined by the mod_form.php 
+ * @param object $groupselect An object containing all the necessary data defined by the mod_form.php
  * @return bool
  */
 function groupselect_update_instance($groupselect) {
+    global $DB;
+
     $groupselect->timemodified = time();
     $groupselect->id = $groupselect->instance;
 
-    return update_record('groupselect', $groupselect);
+    return $DB->update_record('groupselect', $groupselect);
 }
 
 
 /**
- * Permanently delete the instance of the module and any data that depends on it.  
+ * Permanently delete the instance of the module and any data that depends on it.
  *
  * @param int $id Instance id
  * @return bool
  */
 function groupselect_delete_instance($id) {
- 
-    if (! $groupselect = get_record('groupselect', 'id', $id)) {
-        return false;
-    }
+    global $DB;
 
-    $result = true;
+    $DB->delete_records('groupselect', array('id'=>$id));
 
-    if (! delete_records('groupselect', 'id', $groupselect->id)) {
-        $result = false;
-    }
-
-    return $result;
+    return true;
 }
 
 
@@ -105,32 +106,33 @@ function groupselect_delete_instance($id) {
  * Returns the users with data in this module
  *
  * We have no data/users here but this must exists in every module
- * 
- * @param int $groupselectid 
+ *
+ * @param int $groupselectid
  * @return bool
  */
 function groupselect_get_participants($groupselectid) {
+    // no participants here - all data is stored in the group tables
     return false;
 }
 
 
 /**
- * groupselect_get_view_actions 
- * 
+ * groupselect_get_view_actions
+ *
  * @return array
  */
 function groupselect_get_view_actions() {
-    return array();
+    return array('view');
 }
 
 
 /**
- * groupselect_get_post_actions 
- * 
+ * groupselect_get_post_actions
+ *
  * @return array
  */
 function groupselect_get_post_actions() {
-    return array();
+    return array('select', 'unselect');
 }
 
 
@@ -141,5 +143,6 @@ function groupselect_get_post_actions() {
  * @return array status array
  */
 function groupselect_reset_userdata($data) {
+    // no resetting here - all data is stored in the group tables
     return array();
 }

@@ -15,16 +15,21 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Group self selection
+ * Definition of log events
  *
  * @package    mod
  * @subpackage groupselect
- * @copyright  2008 Petr Skoda (http://skodak.org)
+ * @copyright  2011 Petr Skoda (http://skodak.org)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die;
+defined('MOODLE_INTERNAL') || die();
 
-$module->version  = 2010010101;  // note: keep low to prevent Netspot breakage for now
-$module->requires = 2011033000;  // Requires this Moodle version
-$module->cron     = 0;
+$logs = array(
+    array('module'=>'groupselect', 'action'=>'select', 'mtable'=>'groupselect', 'field'=>'name'),
+    array('module'=>'groupselect', 'action'=>'unselect', 'mtable'=>'groupselect', 'field'=>'name'),
+    array('module'=>'groupselect', 'action'=>'view', 'mtable'=>'groupselect', 'field'=>'name'),
+    array('module'=>'groupselect', 'action'=>'view all', 'mtable'=>'groupselect', 'field'=>'name'),
+    array('module'=>'groupselect', 'action'=>'update', 'mtable'=>'groupselect', 'field'=>'name'),
+    array('module'=>'groupselect', 'action'=>'add', 'mtable'=>'groupselect', 'field'=>'name'),
+);

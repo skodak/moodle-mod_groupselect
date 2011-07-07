@@ -15,16 +15,30 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Group self selection
+ * Page module capability definition
  *
  * @package    mod
  * @subpackage groupselect
- * @copyright  2008 Petr Skoda (http://skodak.org)
+ * @copyright  2011 Petr Skoda (http://skodak.org)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die;
 
-$module->version  = 2010010101;  // note: keep low to prevent Netspot breakage for now
-$module->requires = 2011033000;  // Requires this Moodle version
-$module->cron     = 0;
+$capabilities = array(
+    'mod/groupselect:select' => array(
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_MODULE,
+        'archetypes' => array(
+            'student' => CAP_ALLOW,
+        )
+    ),
+
+    /* allow student if necessary via override */
+    'mod/groupselect:unselect' => array(
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_MODULE,
+        'archetypes' => array(
+        )
+    ),
+);
