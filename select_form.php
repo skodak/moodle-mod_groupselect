@@ -28,13 +28,14 @@ defined('MOODLE_INTERNAL') || die;
 require_once($CFG->dirroot.'/lib/formslib.php');
 
 class select_form extends moodleform {
+    private $groupselect;
 
     // Define the form
     function definition () {
         $mform = $this->_form;
-        list($data, $groupselect) = $this->_customdata;
+        list($data, $this->groupselect, $grpname) = $this->_customdata;
 
-        if ($groupselect->password !== '') {
+        if ($this->groupselect->password !== '') {
             $mform->addElement('passwordunmask', 'password', get_string('password', 'mod_groupselect'), 'maxlength="254" size="24"');
             $mform->setType('password', PARAM_RAW);
         }
@@ -45,17 +46,15 @@ class select_form extends moodleform {
         $mform->addElement('hidden','select');
         $mform->setType('select', PARAM_INT);
 
-        $this->add_action_buttons(true, get_string('select', 'mod_groupselect'));
+        $this->add_action_buttons(true, get_string('select', 'mod_groupselect', $grpname));
         $this->set_data($data);
     }
 
     function validation($data, $files) {
         $errors = parent::validation($data, $files);
 
-        list($data, $groupselect) = $this->_customdata;
-
-        if ($groupselect->password !== '') {
-            if ($groupselect->password !== $data['password']) {
+        if ($this->groupselect->password !== '') {
+            if ($this->groupselect->password !== $data['password']) {
                 $errors['password'] = get_string('incorrectpassword', 'mod_groupselect');
             }
         }

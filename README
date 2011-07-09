@@ -20,7 +20,11 @@ Authors:
 * Helen Foster        - lang, docs and help
 * Anna Vanova         - code maintenance
 
+
+FAQs:
+* How to hide existing members? Use separate group mode.
+
+
 TODO:
-* backup/restore
-* fix accessibility issues
+* review and fix accessibility issues
 * improve CSS

@@ -54,7 +54,7 @@ $PAGE->set_title($course->shortname.': '.$groupselect->name);
 $PAGE->set_heading($course->fullname);
 $PAGE->set_activity_record($groupselect);
 
-$mygroups       = groups_get_all_groups($course->id, $USER->id, $groupselect->targetgrouping, 'g.id');
+$mygroups       = groups_get_all_groups($course->id, $USER->id, $groupselect->targetgrouping, 'g.*');
 $isopen         = groupselect_is_open($groupselect);
 $groupmode      = groups_get_activity_groupmode($cm, $course);
 $counts         = groupselect_group_member_counts($cm, $groupselect->targetgrouping);
@@ -73,8 +73,6 @@ if ($course->id == SITEID) {
 $strgroup       = get_string('group');
 $strgroupdesc   = get_string('groupdescription', 'group');
 $strmembers     = get_string('memberslist', 'mod_groupselect');
-$strselect      = get_string('select', 'mod_groupselect');
-$strunselect    = get_string('unselect', 'mod_groupselect');
 $straction      = get_string('action', 'mod_groupselect');
 $strcount       = get_string('membercount', 'mod_groupselect');
 
@@ -98,8 +96,9 @@ if ($accessall) {
 
 if ($select and $canselect and isset($groups[$select]) and $isopen) {
     // user selected group
+    $grpname = format_string($groups[$select]->name, true, array('context'=>$context));
     $data = array('id'=>$id, 'select'=>$select);
-    $mform = new select_form(null, array($data, $groupselect));
+    $mform = new select_form(null, array($data, $groupselect, $grpname));
 
     if ($mform->is_cancelled()) {
         redirect($PAGE->url);
@@ -111,9 +110,11 @@ if ($select and $canselect and isset($groups[$select]) and $isopen) {
 
     } else {
         echo $OUTPUT->header();
-        echo $OUTPUT->heading(get_string('select', 'mod_groupselect'));
-        echo $OUTPUT->box(get_string('selectconfirm', 'mod_groupselect', format_string($groups[$select]->name, true, array('context'=>$context))));
+        echo $OUTPUT->heading(get_string('select', 'mod_groupselect', $grpname));
+        echo $OUTPUT->box_start('generalbox', 'notice');
+        echo '<p>'.get_string('selectconfirm', 'mod_groupselect', $grpname).'</p>';
         $mform->display();
+        echo $OUTPUT->box_end();
         echo $OUTPUT->footer();
         die;
     }
@@ -127,10 +128,11 @@ if ($select and $canselect and isset($groups[$select]) and $isopen) {
         redirect($PAGE->url);
 
     } else {
+        $grpname = format_string($mygroups[$unselect]->name, true, array('context'=>$context));
         echo $OUTPUT->header();
-        echo $OUTPUT->heading(get_string('unselect', 'mod_groupselect'));
+        echo $OUTPUT->heading(get_string('unselect', 'mod_groupselect', $grpname));
         $yesurl = new moodle_url('/mod/groupselect/view.php', array('id'=>$cm->id, 'unselect'=>$unselect, 'confirm'=>1,'sesskey'=>sesskey()));
-        $message = get_string('unselectconfirm', 'mod_groupselect', format_string($groups[$unselect]->name, true, array('context'=>$context)));
+        $message = get_string('unselectconfirm', 'mod_groupselect', $grpname);
         echo $OUTPUT->confirm($message, $yesurl, $PAGE->url);
         echo $OUTPUT->footer();
         die;
@@ -167,9 +169,11 @@ if ($groups) {
 
         $line = array();
         if ($ismember) {
-            $grpname = '<div class="mygroup">'.$grpname.'</div>';
+            $line[0] = '<div class="mygroup">'.$grpname.'</div>';
+        } else {
+            $line[0] = $grpname;
         }
-        $line[0] = $grpname;
+
         $line[1] = groupselect_get_group_info($group);
 
         if ($groupselect->maxmembers) {
@@ -211,10 +215,10 @@ if ($groups) {
                 $line[4] = '<div class="maxlimitreached">'.get_string('maxlimitreached', 'mod_groupselect').'</div>'; // full - no more members
                 $actionpresent = true;
             } else if ($ismember and $canunselect) {
-                $line[4] = "<a title=\"$strunselect\" href=\"view.php?id=$cm->id&amp;unselect=$group->id\">$strunselect</a>";
+                $line[4] = $OUTPUT->single_button(new moodle_url('/mod/groupselect/view.php', array('id'=>$cm->id, 'unselect'=>$group->id)), get_string('unselect', 'mod_groupselect', $grpname));
                 $actionpresent = true;
             } else if (!$ismember and $canselect) {
-                $line[4] = "<a title=\"$strselect\" href=\"view.php?id=$cm->id&amp;select=$group->id\">$strselect</a> ";
+                $line[4] = $OUTPUT->single_button(new moodle_url('/mod/groupselect/view.php', array('id'=>$cm->id, 'select'=>$group->id)), get_string('select', 'mod_groupselect', $grpname));
                 $actionpresent = true;
             }
         }
