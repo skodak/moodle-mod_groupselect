@@ -25,6 +25,6 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-$module->version  = 2010010101;  // note: keep low to prevent Netspot breakage for now
+$module->version  = 2010010102;  // note: keep low to prevent Netspot breakage for now
 $module->requires = 2011033000;  // Requires this Moodle version
 $module->cron     = 0;

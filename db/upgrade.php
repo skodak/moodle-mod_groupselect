@@ -25,23 +25,14 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-function xmldb_groupselect_upgrade($oldversion=0) {
-
-    global $CFG, $THEME, $DB;
+function xmldb_groupselect_upgrade($oldversion) {
+    global $DB;
 
     $result = true;
     $dbman = $DB->get_manager();
 
     if ($result && $oldversion < 2009020600) {
         $table = new xmldb_table('groupselect');
-
-        // Define field signuptype to be added to groupselect
-        $field_signuptype_new = new xmldb_field('signuptype',XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, null, null, null, null, '0', 'intro');
-
-        // Conditionally launch adding fields
-        if (!$dbman->field_exists($table, $field_signuptype_new)) {
-            $dbman->add_field($table, $field_signuptype_new);
-        }
 
         // Define field timecreated to be added to groupselect
         $field_timecreated_new = new xmldb_field('timecreated',XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'timedue');
@@ -88,6 +79,23 @@ function xmldb_groupselect_upgrade($oldversion=0) {
         // groupselect savepoint reached
         upgrade_mod_savepoint(true, 2010010100, 'groupselect');
     }
+
+    if ($result && $oldversion < 2010010102) {
+        $table = new xmldb_table('groupselect');
+
+        // Define field signuptype to be added to groupselect
+        $field_signuptype = new xmldb_field('signuptype',XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, null, null, null, null, '0', 'targetgrouping');
+
+        // Conditionally launch removing fields
+        if ($dbman->field_exists($table, $field_signuptype)) {
+            $dbman->drop_field($table, $field_signuptype);
+        }
+
+        // search savepoint reached
+        upgrade_mod_savepoint(true, 2010010102, 'groupselect');
+
+    }
+
 
     return $result;
 }
