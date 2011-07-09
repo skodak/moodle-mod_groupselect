@@ -1,6 +1,11 @@
 <?php
 
 $string['action'] = 'Action';
+$string['cannotselectclosed'] = 'You can not become group member any more.';
+$string['cannotselectmaxed'] = 'You can not join group {$a} - maximum number of members reached.';
+$string['cannotselectnocap'] = 'You are not allowed to select group.';
+$string['cannotselectnoenrol'] = 'You need to be enrolled into course in order to become a group member.';
+$string['cannotunselectclosed'] = 'You can not leave group any more';
 $string['fromallgroups'] = 'All groups';
 $string['groupselect:select'] = 'Allow becoming of group member';
 $string['groupselect:unselect'] = 'Allow leaving of group';
@@ -14,8 +19,6 @@ $string['memberslist'] = 'Members';
 $string['modulename'] = 'Group self-selection';
 $string['modulenameplural'] = 'Group self-selections';
 $string['nogroups'] = 'No groups available to select from, sorry.';
-$string['noguestselect'] = 'Sorry, guests are not allowed to become group members.';
-$string['noenrolselect'] = 'Sorry, you need to be enrolled into course in order to become a group member.';
 $string['notavailableanymore'] = 'Group selection is not available anymore, sorry (since {$a}).';
 $string['notavailableyet'] = 'Group selection will be available on {$a}.';
 $string['password'] = 'Require password';

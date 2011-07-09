@@ -76,32 +76,43 @@ $strmembers     = get_string('memberslist', 'mod_groupselect');
 $straction      = get_string('action', 'mod_groupselect');
 $strcount       = get_string('membercount', 'mod_groupselect');
 
-if ($accessall) {
-    // can see group members - depending on overrides guests could get through too
+// problem notification
+$problems = array();
 
-} else if (isguestuser()) {
-    echo $OUTPUT->header();
-    echo $OUTPUT->notification(get_string('noguestselect', 'mod_groupselect'));
-    echo $OUTPUT->continue_button(new moodle_url('/course/view.php', array('id'=>$course->id)));
-    echo $OUTPUT->footer($course);
-    exit;
+if (!is_enrolled($context)) {
+    $problems[] = get_string('cannotselectnoenrol', 'mod_groupselect');
 
-} else if (!is_enrolled($context)) {
-    echo $OUTPUT->header();
-    echo $OUTPUT->notification(get_string('noenrolselect', 'mod_groupselect'));
-    echo $OUTPUT->continue_button(new moodle_url('/course/view.php', array('id'=>$course->id)));
-    echo $OUTPUT->footer($course);
-    exit;
+} else {
+    if (!has_capability('mod/groupselect:select', $context)) {
+        $problems[] = get_string('cannotselectnocap', 'mod_groupselect');
+
+    } else if ($canselect) {
+        if ($groupselect->timeavailable > time()) {
+            $problems[] = get_string('notavailableyet', 'mod_groupselect', userdate($groupselect->timeavailable));
+
+        } else if ($groupselect->timedue != 0 and  $groupselect->timedue < time() and empty($mygroups)) {
+            $problems[] = get_string('notavailableanymore', 'mod_groupselect', userdate($groupselect->timedue));
+        }
+    }
 }
 
 if ($select and $canselect and isset($groups[$select]) and $isopen) {
     // user selected group
     $grpname = format_string($groups[$select]->name, true, array('context'=>$context));
+    $usercount = isset($counts[$select]) ? $counts[$select]->usercount : 0;
+
     $data = array('id'=>$id, 'select'=>$select);
     $mform = new select_form(null, array($data, $groupselect, $grpname));
 
     if ($mform->is_cancelled()) {
         redirect($PAGE->url);
+    }
+
+    if (!$isopen) {
+        $problems[] = get_string('cannotselectclosed', 'mod_groupselect');
+
+    } else if ($groupselect->maxmembers and $groupselect->maxmembers <= $usercount) {
+        $problems[] = get_string('cannotselectmaxed', 'mod_groupselect', $grpname);
 
     } else if ($mform->get_data()) {
         groups_add_member($select, $USER->id);
@@ -119,10 +130,13 @@ if ($select and $canselect and isset($groups[$select]) and $isopen) {
         die;
     }
 
-} else if ($unselect and $canunselect and isset($mygroups[$unselect]) and $isopen) {
+} else if ($unselect and $canunselect and isset($mygroups[$unselect])) {
     // user unselected group
 
-    if ($confirm and data_submitted() and confirm_sesskey()) {
+    if (!$isopen) {
+        $problems[] = get_string('cannotunselectclosed', 'mod_groupselect');
+
+    } else if ($confirm and data_submitted() and confirm_sesskey()) {
         groups_remove_member($unselect, $USER->id);
         add_to_log($course->id, 'groupselect', 'unselect', 'view.php?id='.$cm->id, $groupselect->id, $cm->id);
         redirect($PAGE->url);
@@ -148,17 +162,16 @@ if (trim(strip_tags($groupselect->intro))) {
     echo $OUTPUT->box_end();
 }
 
-if ($canselect and $groupselect->timeavailable > time()) {
-    echo $OUTPUT->notification(get_string('notavailableyet', 'mod_groupselect', userdate($groupselect->timeavailable)), "$CFG->wwwroot/course/view.php?id=$course->id");
+if (empty($groups)) {
+    echo $OUTPUT->notification(get_string('nogroups', 'mod_groupselect'));
 
-} else if ($canselect and $groupselect->timedue != 0 and  $groupselect->timedue < time() and empty($mygroups)) {
-    echo $OUTPUT->notification(get_string('notavailableanymore', 'mod_groupselect', userdate($groupselect->timedue)));
+} else {
+    if ($problems) {
+        foreach ($problems as $problem) {
+            echo $OUTPUT->notification($problem, 'notifyproblem');
+        }
+    }
 
-} else if (!is_enrolled($context)) {
-    // TODO: explain no select possible if not enrolled
-}
-
-if ($groups) {
     $data = array();
     $actionpresent = false;
 
@@ -211,7 +224,7 @@ if ($groups) {
             $line[3] = '<div class="membershidden">'.get_string('membershidden', 'mod_groupselect').'</div>';
         }
         if ($isopen and !$accessall) {
-            if (!$ismember and $groupselect->maxmembers and $groupselect->maxmembers <= $usercount) {
+            if (!$ismember and $canselect and $groupselect->maxmembers and $groupselect->maxmembers <= $usercount) {
                 $line[4] = '<div class="maxlimitreached">'.get_string('maxlimitreached', 'mod_groupselect').'</div>'; // full - no more members
                 $actionpresent = true;
             } else if ($ismember and $canunselect) {
@@ -237,11 +250,7 @@ if ($groups) {
     }
     echo html_writer::table($table);
 
-} else {
-    echo $OUTPUT->notification(get_string('nogroups', 'mod_groupselect'));
 }
 
-
 echo $OUTPUT->footer();
-
 

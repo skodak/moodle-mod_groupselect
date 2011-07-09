@@ -1,4 +1,4 @@
-Group self selection module for Moodle
+Group self-selection module for Moodle
 Copyright (C) 2008  Petr Skoda (http://skodak.org)
 
 
@@ -16,15 +16,18 @@ http:www.gnu.org/copyleft/gpl.html
 
 
 Authors:
-* Petr Skoda (skodak) - coding
-* Helen Foster        - lang, docs and help
-* Anna Vanova         - code maintenance
+* Petr Skoda (skodak)    - coding
+* Helen Foster           - lang, docs and help
+* Anna Vanova and others - ideas and bugfixing
 
 
 FAQs:
-* How to hide existing members? Use separate group mode.
+* How to hide existing group members before selection? Use separate group mode in activity settings.
+* Is 1.9.x version of this module stable? Not really.
+* Will this become part of Moodle 2.2? Maybe, ask Michael de Raadt.
 
 
 TODO:
 * review and fix accessibility issues
 * improve CSS
+* calendar support
