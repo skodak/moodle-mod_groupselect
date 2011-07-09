@@ -62,12 +62,32 @@ function groupselect_get_extra_capabilities() {
  * $return int The id of the newly created instance
  */
 function groupselect_add_instance($groupselect) {
-    global $DB;
+    global $DB, $CFG;
+
+    require_once($CFG->dirroot.'/calendar/lib.php');
 
     $groupselect->timecreated = time();
     $groupselect->timemodified = time();
 
-    return $DB->insert_record('groupselect', $groupselect);
+    $groupselect->id = $DB->insert_record('groupselect', $groupselect);
+
+    if ($groupselect->timedue) {
+        $event = new stdClass();
+        $event->name         = $groupselect->name;
+        $event->description  = format_module_intro('groupselect', $groupselect, $groupselect->coursemodule); // TODO: this is weird
+        $event->courseid     = $groupselect->course;
+        $event->groupid      = 0;
+        $event->userid       = 0;
+        $event->modulename   = 'groupselect';
+        $event->instance     = $groupselect->id;
+        $event->eventtype    = 'due';
+        $event->timestart    = $groupselect->timedue;
+        $event->timeduration = 0;
+
+        calendar_event::create($event);
+    }
+
+    return $groupselect->id;
 }
 
 
@@ -78,12 +98,45 @@ function groupselect_add_instance($groupselect) {
  * @return bool
  */
 function groupselect_update_instance($groupselect) {
-    global $DB;
+    global $DB, $CFG;
+
+    require_once($CFG->dirroot.'/calendar/lib.php');
 
     $groupselect->timemodified = time();
     $groupselect->id = $groupselect->instance;
 
-    return $DB->update_record('groupselect', $groupselect);
+    $DB->update_record('groupselect', $groupselect);
+
+    if ($groupselect->timedue) {
+        if ($event->id = $DB->get_field('event', 'id', array('modulename'=>'groupselect', 'instance'=>$groupselect->id))) {
+            $event->name         = $groupselect->name;
+            $event->description  = format_module_intro('groupselect', $groupselect, $groupselect->coursemodule);
+            $event->timestart    = $groupselect->timedue;
+
+            $calendarevent = calendar_event::load($event->id);
+            $calendarevent->update($event);
+
+        } else {
+            $event = new stdClass();
+            $event->name         = $groupselect->name;
+            $event->description  = format_module_intro('groupselect', $groupselect, $groupselect->coursemodule);// TODO: this is weird
+            $event->courseid     = $groupselect->course;
+            $event->groupid      = 0;
+            $event->userid       = 0;
+            $event->modulename   = 'groupselect';
+            $event->instance     = $groupselect->id;
+            $event->eventtype    = 'due';
+            $event->timestart    = $groupselect->timedue;
+            $event->timeduration = 0;
+
+            calendar_event::create($event);
+        }
+
+    } else {
+        $DB->delete_records('event', array('modulename'=>'groupselect', 'instance'=>$groupselect->id));
+    }
+
+    return true;
 }
 
 
