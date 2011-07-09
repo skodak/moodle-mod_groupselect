@@ -27,7 +27,7 @@ defined('MOODLE_INTERNAL') || die;
 
 require_once($CFG->dirroot.'/lib/formslib.php');
 
-class signup_form extends moodleform {
+class select_form extends moodleform {
 
     // Define the form
     function definition () {
@@ -42,10 +42,10 @@ class signup_form extends moodleform {
         $mform->addElement('hidden','id');
         $mform->setType('id', PARAM_INT);
 
-        $mform->addElement('hidden','signup');
-        $mform->setType('signup', PARAM_INT);
+        $mform->addElement('hidden','select');
+        $mform->setType('select', PARAM_INT);
 
-        $this->add_action_buttons(true, get_string('signup', 'mod_groupselect'));
+        $this->add_action_buttons(true, get_string('select', 'mod_groupselect'));
         $this->set_data($data);
     }
 

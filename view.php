@@ -25,13 +25,13 @@
 
 require('../../config.php');
 require_once('locallib.php');
-require_once('signup_form.php');
+require_once('select_form.php');
 
-$id      = optional_param('id', 0, PARAM_INT);       // Course Module ID, or
-$g       = optional_param('g', 0, PARAM_INT);        // Page instance ID
-$signup  = optional_param('signup', 0, PARAM_INT);
-$signout = optional_param('signout', 0, PARAM_INT);
-$confirm = optional_param('confirm', 0, PARAM_BOOL);
+$id         = optional_param('id', 0, PARAM_INT);       // Course Module ID, or
+$g          = optional_param('g', 0, PARAM_INT);        // Page instance ID
+$select     = optional_param('select', 0, PARAM_INT);
+$unselect   = optional_param('unselect', 0, PARAM_INT);
+$confirm    = optional_param('confirm', 0, PARAM_BOOL);
 
 if ($g) {
     $groupselect = $DB->get_record('groupselect', array('id'=>$g), '*', MUST_EXIST);
@@ -73,8 +73,8 @@ if ($course->id == SITEID) {
 $strgroup       = get_string('group');
 $strgroupdesc   = get_string('groupdescription', 'group');
 $strmembers     = get_string('memberslist', 'mod_groupselect');
-$strsignup      = get_string('signup', 'mod_groupselect');
-$strsignout     = get_string('signout', 'mod_groupselect');
+$strselect      = get_string('select', 'mod_groupselect');
+$strunselect    = get_string('unselect', 'mod_groupselect');
 $straction      = get_string('action', 'mod_groupselect');
 $strcount       = get_string('membercount', 'mod_groupselect');
 
@@ -96,41 +96,41 @@ if ($accessall) {
     exit;
 }
 
-if ($signup and $canselect and isset($groups[$signup]) and $isopen) {
+if ($select and $canselect and isset($groups[$select]) and $isopen) {
     // user selected group
-    $data = array('id'=>$id, 'signup'=>$signup);
-    $mform = new signup_form(null, array($data, $groupselect));
+    $data = array('id'=>$id, 'select'=>$select);
+    $mform = new select_form(null, array($data, $groupselect));
 
     if ($mform->is_cancelled()) {
         redirect($PAGE->url);
 
     } else if ($mform->get_data()) {
-        groups_add_member($signup, $USER->id);
+        groups_add_member($select, $USER->id);
         add_to_log($course->id, 'groupselect', 'select', 'view.php?id='.$cm->id, $groupselect->id, $cm->id);
         redirect($PAGE->url);
 
     } else {
         echo $OUTPUT->header();
-        echo $OUTPUT->heading(get_string('signup', 'mod_groupselect'));
-        echo $OUTPUT->box(get_string('signupconfirm', 'mod_groupselect', format_string($groups[$signup]->name, true, array('context'=>$context))));
+        echo $OUTPUT->heading(get_string('select', 'mod_groupselect'));
+        echo $OUTPUT->box(get_string('selectconfirm', 'mod_groupselect', format_string($groups[$select]->name, true, array('context'=>$context))));
         $mform->display();
         echo $OUTPUT->footer();
         die;
     }
 
-} else if ($signout and $canunselect and isset($mygroups[$signout]) and $isopen) {
+} else if ($unselect and $canunselect and isset($mygroups[$unselect]) and $isopen) {
     // user unselected group
 
     if ($confirm and data_submitted() and confirm_sesskey()) {
-        groups_remove_member($signout, $USER->id);
+        groups_remove_member($unselect, $USER->id);
         add_to_log($course->id, 'groupselect', 'unselect', 'view.php?id='.$cm->id, $groupselect->id, $cm->id);
         redirect($PAGE->url);
 
     } else {
         echo $OUTPUT->header();
-        echo $OUTPUT->heading(get_string('signout', 'mod_groupselect'));
-        $yesurl = new moodle_url('/mod/groupselect/view.php', array('id'=>$cm->id, 'signout'=>$signout, 'confirm'=>1,'sesskey'=>sesskey()));
-        $message = get_string('signoutconfirm', 'mod_groupselect', format_string($groups[$signout]->name, true, array('context'=>$context)));
+        echo $OUTPUT->heading(get_string('unselect', 'mod_groupselect'));
+        $yesurl = new moodle_url('/mod/groupselect/view.php', array('id'=>$cm->id, 'unselect'=>$unselect, 'confirm'=>1,'sesskey'=>sesskey()));
+        $message = get_string('unselectconfirm', 'mod_groupselect', format_string($groups[$unselect]->name, true, array('context'=>$context)));
         echo $OUTPUT->confirm($message, $yesurl, $PAGE->url);
         echo $OUTPUT->footer();
         die;
@@ -211,10 +211,10 @@ if ($groups) {
                 $line[4] = '<div class="maxlimitreached">'.get_string('maxlimitreached', 'mod_groupselect').'</div>'; // full - no more members
                 $actionpresent = true;
             } else if ($ismember and $canunselect) {
-                $line[4] = "<a title=\"$strsignout\" href=\"view.php?id=$cm->id&amp;signout=$group->id\">$strsignout</a>";
+                $line[4] = "<a title=\"$strunselect\" href=\"view.php?id=$cm->id&amp;unselect=$group->id\">$strunselect</a>";
                 $actionpresent = true;
             } else if (!$ismember and $canselect) {
-                $line[4] = "<a title=\"$strsignup\" href=\"view.php?id=$cm->id&amp;signup=$group->id\">$strsignup</a> ";
+                $line[4] = "<a title=\"$strselect\" href=\"view.php?id=$cm->id&amp;select=$group->id\">$strselect</a> ";
                 $actionpresent = true;
             }
         }
