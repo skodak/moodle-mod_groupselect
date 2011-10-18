@@ -30,7 +30,7 @@
     $hasgroup       = !empty($havinggroups);
     $isopen         = groupselect_is_open($groupselect);
     $groupmode      = groups_get_activity_groupmode($cm, $course);
-    $counts         = groupselect_group_member_counts($cm, $groupselect->targetgrouping); 
+    $counts         = groupselect_group_member_counts($cm, $groupselect->targetgrouping);
 //    $mygroups       = groups_get_user_groups($course->id, $USER->id);
 //    $mygroups       = isset($mygroups[$groupselect->targetgrouping]) ? $mygroups[$groupselect->targetgrouping] : array();
 
@@ -50,7 +50,7 @@
     $strcount        = get_string('membercount', 'groupselect');
 
     $navigation = build_navigation('', $cm);
-    
+
     if (has_capability('moodle/legacy:guest', $context, NULL, false)) {
         print_header_simple(format_string($groupselect->name), '', $navigation, '', '', true, '', navmenu($course, $cm));
 
@@ -68,6 +68,15 @@
     if ($signup and !$hasgroup) {
         require_once('signup_form.php');
 
+        if ($groupselect->maxmembers) {
+            $usercount = isset($counts[$signup]) ? $counts[$signup]->usercount : 0;
+            if ($groupselect->maxmembers <= $usercount) {
+                print_header_simple(format_string($groupselect->name), '', $navigation, '', '', true, '', navmenu($course, $cm));
+                notice(get_string('notavailable', 'groupselect'), "$CFG->wwwroot/mod/groupselect/view.php?id=$cm->id");
+                exit;
+            }
+        }
+
         $mform = new signup_form(null, $groupselect);
         $data = array('id'=>$id, 'signup'=>$signup);
         $mform->set_data($data);
@@ -82,7 +91,7 @@
             }
             groups_add_member($signup, $USER->id);
             redirect("$CFG->wwwroot/mod/groupselect/view.php?id=$cm->id");
-            
+
         } else {
             print_header_simple(format_string($groupselect->name), '', $navigation, '', '', true, '', navmenu($course, $cm));
             print_box(get_string('signupconfirm', 'groupselect', format_string($groups[$signup]->name)));
@@ -112,7 +121,7 @@
             }
             groups_remove_member($signout, $USER->id);
             redirect("$CFG->wwwroot/mod/groupselect/view.php?id=$cm->id");
-            
+
         } else {
             print_header_simple(format_string($groupselect->name), '', $navigation, '', '', true, '', navmenu($course, $cm));
             print_box(get_string('signoutconfirm', 'groupselect', format_string($groups[$signout]->name)));
@@ -132,7 +141,7 @@
     if (empty($CFG->enablegroupings) or empty($cm->groupingid)) {
         print_heading(get_string('headingsimple', 'groupselect'));
     } else {
-        $grouping = groups_get_grouping($cm->groupingid);        
+        $grouping = groups_get_grouping($cm->groupingid);
         print_heading(get_string('headinggrouping', 'groupselect', format_string($grouping->name)));
     }
 
@@ -198,11 +207,9 @@
             if ($isopen and !$accessall) { //!$hasgroup and
                 if ($groupselect->maxmembers and $groupselect->maxmembers <= $usercount and !$ismember) {
                     $line[4] = '<div class="notavailable">'.get_string('notavailable', 'groupselect').'</div>'; // full - no more members
-                } else if ($ismember) 
-                {
+                } else if ($ismember) {
                     $line[4] = format_text("<a title=\"$strsignout\" href=\"view.php?id=$cm->id&amp;signout=$group->id\">$strsignout</a>");
-                } else if (!$ismember and !$hasgroup)
-                {
+                } else if (!$ismember and !$hasgroup) {
                     $line[4] = format_text("<a title=\"$strsignup\" href=\"view.php?id=$cm->id&amp;signup=$group->id\">$strsignup</a> ");
                 }
             }
