@@ -19,7 +19,7 @@
  *
  * @package    mod
  * @subpackage groupselect
- * @copyright  2008 Petr Skoda (http://skodak.org)
+ * @copyright  2008-2011 Petr Skoda (http://skodak.org)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -28,14 +28,13 @@ defined('MOODLE_INTERNAL') || die;
 function xmldb_groupselect_upgrade($oldversion) {
     global $DB;
 
-    $result = true;
     $dbman = $DB->get_manager();
 
-    if ($result && $oldversion < 2009020600) {
+    if ($oldversion < 2009020600) {
         $table = new xmldb_table('groupselect');
 
         // Define field timecreated to be added to groupselect
-        $field_timecreated_new = new xmldb_field('timecreated',XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'timedue');
+        $field_timecreated_new = new xmldb_field('timecreated', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'timedue');
 
         // Conditionally launch add temporary fields
         if (!$dbman->field_exists($table, $field_timecreated_new)) {
@@ -47,11 +46,11 @@ function xmldb_groupselect_upgrade($oldversion) {
 
     }
 
-    if ($result && $oldversion < 2009030500) {
+    if ($oldversion < 2009030500) {
 
         // Define field targetgrouping to be added to groupselect
         $table = new xmldb_table('groupselect');
-        $field_targetgrouping_new = new xmldb_field('targetgrouping',XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'intro');
+        $field_targetgrouping_new = new xmldb_field('targetgrouping', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'intro');
         // Conditionally launch adding fields
         if (!$dbman->field_exists($table, $field_targetgrouping_new)) {
             $dbman->add_field($table, $field_targetgrouping_new);
@@ -80,11 +79,11 @@ function xmldb_groupselect_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2010010100, 'groupselect');
     }
 
-    if ($result && $oldversion < 2010010102) {
+    if ($oldversion < 2010010102) {
         $table = new xmldb_table('groupselect');
 
         // Define field signuptype to be added to groupselect
-        $field_signuptype = new xmldb_field('signuptype',XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, null, null, null, null, '0', 'targetgrouping');
+        $field_signuptype = new xmldb_field('signuptype', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, null, null, null, null, '0', 'targetgrouping');
 
         // Conditionally launch removing fields
         if ($dbman->field_exists($table, $field_signuptype)) {
@@ -96,6 +95,17 @@ function xmldb_groupselect_upgrade($oldversion) {
 
     }
 
+    if ($oldversion < 2011101800) {
+        $table = new xmldb_table('book');
+        $field = new xmldb_field('intro', XMLDB_TYPE_TEXT, 'big', null, XMLDB_NOTNULL, null, null, 'name');
 
-    return $result;
+        // Make text field bigger
+        $dbman->change_field_precision($table, $field);
+
+        // savepoint reached
+        upgrade_mod_savepoint(true, 2011101800, 'book');
+    }
+
+
+    return true;
 }
