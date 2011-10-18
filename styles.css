@@ -1,13 +1,13 @@
 
-#page-mod-groupselect-view .mygroup,
+.mod_groupselect .mygroup,
 #page-mod-groupselect-view .me {
   font-weight: bold;
 }
 
-#page-mod-groupselect-view .membershidden {
+.mod_groupselect .membershidden {
   color:#AAAAAA;
 }
 
-#page-mod-groupselect-view .maxlimitreached {
+.mod_groupselect .maxlimitreached {
   color:#AAAAAA;
 }

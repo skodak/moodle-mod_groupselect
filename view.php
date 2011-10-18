@@ -19,7 +19,7 @@
  *
  * @package    mod
  * @subpackage groupselect
- * @copyright  2008 Petr Skoda (http://skodak.org)
+ * @copyright  2008-2011 Petr Skoda (http://skodak.org)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -50,6 +50,7 @@ $context = get_context_instance(CONTEXT_MODULE, $cm->id);
 add_to_log($course->id, 'groupselect', 'view', 'view.php?id='.$cm->id, $groupselect->id, $cm->id);
 
 $PAGE->set_url('/mod/groupselect/view.php', array('id' => $cm->id));
+$PAGE->add_body_class('mod_groupselect');
 $PAGE->set_title($course->shortname.': '.$groupselect->name);
 $PAGE->set_heading($course->fullname);
 $PAGE->set_activity_record($groupselect);
