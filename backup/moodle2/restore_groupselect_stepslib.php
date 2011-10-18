@@ -43,7 +43,9 @@ class restore_groupselect_activity_structure_step extends restore_activity_struc
         $data = (object)$data;
         $oldid = $data->id;
         $data->course = $this->get_courseid();
-        $data->targetgrouping = $this->get_mappingid('grouping', $data->targetgrouping);
+        if (!empty($data->targetgrouping)) {
+            $data->targetgrouping = $this->get_mappingid('grouping', $data->targetgrouping);
+        }
 
         // insert the groupselect record
         $newitemid = $DB->insert_record('groupselect', $data);
