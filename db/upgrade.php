@@ -103,7 +103,7 @@ function xmldb_groupselect_upgrade($oldversion) {
         $dbman->change_field_precision($table, $field);
 
         // savepoint reached
-        upgrade_mod_savepoint(true, 2011101800, 'book');
+        upgrade_mod_savepoint(true, 2011101800, 'groupselect');
     }
 
 
