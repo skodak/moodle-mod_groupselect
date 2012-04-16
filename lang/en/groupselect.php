@@ -7,6 +7,7 @@ $string['cannotselectnocap'] = 'You are not allowed to select group.';
 $string['cannotselectnoenrol'] = 'You need to be enrolled into course in order to become a group member.';
 $string['cannotunselectclosed'] = 'You can not leave group any more';
 $string['fromallgroups'] = 'All groups';
+$string['groupselect:assignment:addinstance'] = 'Add a new Group Selection';
 $string['groupselect:select'] = 'Allow becoming of group member';
 $string['groupselect:unselect'] = 'Allow leaving of group';
 $string['incorrectpassword'] = 'Incorrect password';

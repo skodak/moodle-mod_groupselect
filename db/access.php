@@ -26,6 +26,15 @@
 defined('MOODLE_INTERNAL') || die;
 
 $capabilities = array(
+    'mod/groupselect:addinstance' => array(
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes' => array(
+            'editingteacher' => CAP_ALLOW,
+            'manager' => CAP_ALLOW
+        ),
+        'clonepermissionsfrom' => 'moodle/course:manageactivities'
+    ),
     'mod/groupselect:select' => array(
         'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,
