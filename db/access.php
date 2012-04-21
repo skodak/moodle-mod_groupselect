@@ -27,6 +27,7 @@ defined('MOODLE_INTERNAL') || die;
 
 $capabilities = array(
     'mod/groupselect:addinstance' => array(
+        'riskbitmask' => RISK_XSS,
         'captype' => 'write',
         'contextlevel' => CONTEXT_COURSE,
         'archetypes' => array(
@@ -35,6 +36,7 @@ $capabilities = array(
         ),
         'clonepermissionsfrom' => 'moodle/course:manageactivities'
     ),
+
     'mod/groupselect:select' => array(
         'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,

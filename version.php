@@ -19,13 +19,13 @@
  *
  * @package    mod
  * @subpackage groupselect
- * @copyright  2008-2011 Petr Skoda (http://skodak.org)
+ * @copyright  2008-2012 Petr Skoda (http://skodak.org)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die;
 
-$module->version   = 2011101800; // The current module version (Date: YYYYMMDDXX)
+$module->version   = 2012042100; // The current module version (Date: YYYYMMDDXX)
 $module->requires  = 2011070101; // Requires this Moodle version
 $module->cron      = 0;          // Period for cron to check this module (secs)
 $module->component = 'mod_groupselect'; // Full name of the plugin (used for diagnostics)
