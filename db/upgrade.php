@@ -96,7 +96,7 @@ function xmldb_groupselect_upgrade($oldversion) {
     }
 
     if ($oldversion < 2011101800) {
-        $table = new xmldb_table('book');
+        $table = new xmldb_table('groupselect');
         $field = new xmldb_field('intro', XMLDB_TYPE_TEXT, 'big', null, XMLDB_NOTNULL, null, null, 'name');
 
         // Make text field bigger
