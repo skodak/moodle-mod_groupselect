@@ -38,17 +38,31 @@ class backup_groupselect_activity_structure_step extends backup_activity_structu
         // Define each element separated
         $groupselect = new backup_nested_element('groupselect', array('id'), array(
             'name', 'intro', 'introformat', 'targetgrouping', 'contentformat',
-            'password', 'maxmembers', 'timeavailable', 'timedue',
+            'password', 'maxmembers', 'individual_limits', 'timeavailable', 'timedue',
             'timecreated', 'timemodified'));
+
+        $limits = new backup_nested_element('limits');
+
+        $limit = new backup_nested_element('limit', array('id'), array(
+            'groupselect', 'groupid', 'lim'));
 
         // Build the tree
         // (love this)
+        $groupselect->add_child($limits);
+        $limits->add_child($limit);
 
         // Define sources
         $groupselect->set_source_table('groupselect', array('id' => backup::VAR_ACTIVITYID));
+        $limit->set_source_sql('
+            SELECT *
+            FROM {groupselect_limits}
+            WHERE groupselect = ?',
+            array(backup::VAR_PARENTID)
+        );
 
         // Define id annotations
         // (none)
+        $limit->annotate_ids('group', 'groupid');
 
         // Define file annotations
         $groupselect->annotate_files('mod_groupselect', 'intro', null); // This file areas haven't itemid

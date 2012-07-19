@@ -106,6 +106,19 @@ function xmldb_groupselect_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2011101800, 'groupselect');
     }
 
+    if ($oldversion < 2012071900) {
+        $table = new xmldb_table('groupselect');
+        $field = new xmldb_field('individual_limits');
+        $field->set_attributes(XMLDB_TYPE_INTEGER, '2', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, '0');
+        $dbman->add_field($table, $field);
+
+        $table = new xmldb_table('groupselect_limits');
+        if (!$dbman->table_exists($table)) {
+            $dbman->install_one_table_from_xmldb_file($CFG->dirroot.'/mod/groupselect/db/install.xml', 'groupselect_limits', true);
+        }
+
+        upgrade_mod_savepoint(true, 2012071900, 'groupselect');
+    }
 
     return true;
 }

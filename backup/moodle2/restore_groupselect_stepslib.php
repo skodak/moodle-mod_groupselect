@@ -32,6 +32,7 @@ class restore_groupselect_activity_structure_step extends restore_activity_struc
 
         $paths = array();
         $paths[] = new restore_path_element('groupselect', '/activity/groupselect');
+        $paths[] = new restore_path_element('groupselect_limit', '/activity/groupselect/limits/limit');
 
         // Return the paths wrapped into standard activity structure
         return $this->prepare_activity_structure($paths);
@@ -51,6 +52,18 @@ class restore_groupselect_activity_structure_step extends restore_activity_struc
         $newitemid = $DB->insert_record('groupselect', $data);
         // immediately after inserting "activity" record, call this
         $this->apply_activity_instance($newitemid);
+    }
+
+    protected function process_groupselect_limit($data) {
+        global $DB;
+
+        $data = (object)$data;
+        $oldid = $data->id;
+
+        $data->groupselect = $this->get_new_parentid('groupselect');
+        $data->groupid = $this->get_mappingid('group', $data->groupid);
+
+        $newitemid = $DB->insert_record('groupselect_limits', $data);
     }
 
     protected function after_execute() {

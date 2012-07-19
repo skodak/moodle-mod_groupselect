@@ -88,3 +88,66 @@ function groupselect_group_member_counts($cm, $targetgrouping=0) {
 
     return $DB->get_records_sql($sql, $params);
 }
+
+function groupselect_save_limits($groupselectid, $limits) {
+    global $DB;
+    $groupselectid = intval($groupselectid);
+    # query for existing records which we can update or delete
+    if ($rs = $DB->get_recordset_select('groupselect_limits', "groupselect = $groupselectid",
+                                        null, '', 'id, groupselect, groupid, lim')) {
+        # array to store IDs of rows we want to delete
+        $delete = array();
+        foreach ($rs as $grouplimit) {
+            if (isset($limits[$grouplimit->groupid])) {
+                if ($limits[$grouplimit->groupid] != $grouplimit->lim) {
+                    # only need to update the row if the new limit is different to the
+                    # existing record
+                    $grouplimit->lim = $limits[$grouplimit->groupid];
+                    $DB->update_record('groupselect_limits', $grouplimit);
+                }
+            } else {
+                # a limit for this groupid was left blank, so remove the row
+                $delete[] = $grouplimit->id;
+            }
+            unset($limits[$grouplimit->groupid]);
+        }
+        $rs->close();
+
+        if (!empty($delete)) {
+            list($insql, $params) = $DB->get_in_or_equal($delete);
+            $DB->delete_records_select('groupselect_limits', "id $insql", $params);
+        }
+    }
+
+    # insert all remaining limits
+    foreach ($limits as $groupid => $lim) {
+        $grouplimit = new object();
+        $grouplimit->groupselect = $groupselectid;
+        $grouplimit->groupid = $groupid;
+        $grouplimit->lim = $lim;
+        $DB->insert_record('groupselect_limits', $grouplimit);
+    }
+}
+
+function groupselect_retrieve_limits_formdata($groupselectid) {
+    global $DB;
+    $formdata = array();
+    if ($grouplimits = $DB->get_records("groupselect_limits", array("groupselect" => $groupselectid))) {
+        foreach ($grouplimits as $grouplimit) {
+            $formdata['limit['.$grouplimit->groupid . ']'] = $grouplimit->lim;
+        }
+    }
+    return $formdata;
+}
+
+function groupselect_get_limits($groupselectid) {
+    global $DB;
+    $limits = array();
+    if ($grouplimits = $DB->get_records("groupselect_limits", array("groupselect" => $groupselectid))) {
+        foreach ($grouplimits as $grouplimit) {
+            $limits[$grouplimit->groupid] = $grouplimit->lim;
+        }
+    }
+
+    return $limits;
+}

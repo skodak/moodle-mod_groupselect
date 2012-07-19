@@ -102,6 +102,12 @@ if ($select and $canselect and isset($groups[$select]) and $isopen) {
     $grpname = format_string($groups[$select]->name, true, array('context'=>$context));
     $usercount = isset($counts[$select]) ? $counts[$select]->usercount : 0;
 
+    $limits = groupselect_get_limits($groupselect->id);
+    $signuplimit = isset($limits[$signup]) ? $limits[$signup] : $groupselect->maxmembers;
+    if ($signuplimit <= $usercount && $signuplimit != 0) {
+        print_error(get_string('maxlimitreached', 'groupselect'));
+    }
+
     $data = array('id'=>$id, 'select'=>$select);
     $mform = new select_form(null, array($data, $groupselect, $grpname));
 
@@ -175,11 +181,14 @@ if (empty($groups)) {
 
     $data = array();
     $actionpresent = false;
+    $limits = groupselect_get_limits($groupselect->id);
 
     foreach ($groups as $group) {
         $ismember  = isset($mygroups[$group->id]);
         $usercount = isset($counts[$group->id]) ? $counts[$group->id]->usercount : 0;
         $grpname   = format_string($group->name, true, array('context'=>$context));
+        $maxorlimitmembers = isset($limits[$group->id]) ? $limits[$group->id] : $groupselect->maxmembers;
+
 
         $line = array();
         if ($ismember) {
@@ -190,8 +199,8 @@ if (empty($groups)) {
 
         $line[1] = groupselect_get_group_info($group);
 
-        if ($groupselect->maxmembers) {
-            $line[2] = $usercount.'/'.$groupselect->maxmembers;
+        if ($maxorlimitmembers) {
+            $line[2] = $usercount.'/'.$maxorlimitmembers;
         } else {
             $line[2] = $usercount;
         }
@@ -225,7 +234,7 @@ if (empty($groups)) {
             $line[3] = '<div class="membershidden">'.get_string('membershidden', 'mod_groupselect').'</div>';
         }
         if ($isopen and !$accessall) {
-            if (!$ismember and $canselect and $groupselect->maxmembers and $groupselect->maxmembers <= $usercount) {
+            if (!$ismember and $canselect and $maxorlimitmembers and $maxorlimitmembers <= $usercount) {
                 $line[4] = '<div class="maxlimitreached">'.get_string('maxlimitreached', 'mod_groupselect').'</div>'; // full - no more members
                 $actionpresent = true;
             } else if ($ismember and $canunselect) {
@@ -234,6 +243,8 @@ if (empty($groups)) {
             } else if (!$ismember and $canselect) {
                 $line[4] = $OUTPUT->single_button(new moodle_url('/mod/groupselect/view.php', array('id'=>$cm->id, 'select'=>$group->id)), get_string('select', 'mod_groupselect', $grpname));
                 $actionpresent = true;
+            } else {
+                $line[4] = '';
             }
         }
         $data[] = $line;
