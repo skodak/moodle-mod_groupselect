@@ -199,3 +199,26 @@ function groupselect_reset_userdata($data) {
     // no resetting here - all data is stored in the group tables
     return array();
 }
+
+/**
+ * Adds module specific settings to the settings block
+ *
+ * @param settings_navigation $settings The settings navigation object
+ * @param navigation_node $forumnode The node to add module settings to
+ */
+function groupselect_extend_settings_navigation(settings_navigation $settingsnav, navigation_node $groupselectnode) {
+    global $USER, $PAGE, $CFG, $DB, $OUTPUT;
+
+    $groupselectobject = $DB->get_record("groupselect", array("id" => $PAGE->cm->instance));
+    if (empty($PAGE->cm->context)) {
+        $PAGE->cm->context = get_context_instance(CONTEXT_MODULE, $PAGE->cm->instance);
+    }
+
+    $canmanage = has_capability('moodle/course:managegroups', $PAGE->cm->context);
+
+    if ($canmanage) {
+        $url = new moodle_url('/mod/groupselect/limits.php', array('id' => $PAGE->cm->id));
+        $string = get_string('limits', 'groupselect');
+        $groupselectnode->add($string, $url, settings_navigation::TYPE_SETTING);
+    }
+}
